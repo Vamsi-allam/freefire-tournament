@@ -1,0 +1,12 @@
+# Global ignores at repo root
+# Keep all environment files out of Git history
+.env
+.env.*
+!.env.example
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Editor settings (do not commit)
+.vscode/
