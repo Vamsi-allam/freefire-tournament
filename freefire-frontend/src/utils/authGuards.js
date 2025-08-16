@@ -72,6 +72,28 @@ export function installFetch401Interceptor(store) {
   window.__fetch401Installed = true;
   const orig = window.fetch.bind(window);
   window.fetch = async (...args) => {
+    try {
+      // Prefix relative API calls with configured backend base URL in prod
+      const API_BASE = (import.meta?.env?.VITE_API_BASE_URL || '').trim();
+      if (API_BASE) {
+        let input = args[0];
+        let init = args[1];
+        let url = (typeof input === 'string') ? input : (input && input.url);
+        if (typeof url === 'string' && (url.startsWith('/api') || url.startsWith('/auth'))) {
+          const prefixed = API_BASE + url;
+          // Rebuild request to ensure new URL is used
+          if (typeof input === 'string') {
+            input = prefixed;
+          } else {
+            input = new Request(prefixed, input);
+          }
+          args = [input, init];
+        }
+      }
+    } catch {
+      // ignore prefixing errors and fall back to original args
+    }
+
     const res = await orig(...args);
     if (res && (res.status === 401 || res.status === 403)) {
       try {
