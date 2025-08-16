@@ -20,6 +20,7 @@ const tabs = [
 ];
 
 const AdminPage = () => {
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
   const { userData } = useSelector((state) => state.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -368,7 +369,7 @@ const AdminPage = () => {
   const loadUpiPayments = async () => {
     setLoadingUpiPayments(true);
     try {
-      const response = await fetch('/api/upi/admin/pending', {
+  const response = await fetch(`${API_BASE}/api/upi/admin/pending`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token') || localStorage.getItem('supabaseAccessToken')}`
         }
@@ -392,7 +393,7 @@ const AdminPage = () => {
   const handlePaymentAction = async (paymentId, action, notes = '') => {
     setProcessingPayment(paymentId);
     try {
-      const response = await fetch('/api/upi/admin/action', {
+  const response = await fetch(`${API_BASE}/api/upi/admin/action`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -9,6 +9,7 @@ import SupportModal from './SupportModal';
 import './Homepage.css';
 
 const Homepage = () => {
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
   const dispatch = useDispatch();
   const { isAuthenticated, userData, role } = useSelector((state) => state.user);
   const navigate = useNavigate();
@@ -31,7 +32,7 @@ const Homepage = () => {
         
         // Call backend to create/login user and create wallet
         try {
-          const response = await fetch('/auth/google-login', {
+          const response = await fetch(`${API_BASE}/auth/google-login`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

@@ -21,6 +21,7 @@ import { getUserRegistrations } from '../utils/api';
 import SupportModal from './SupportModal';
 
 const UserPage = () => {
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { userData } = useSelector((state) => state.user);
@@ -82,7 +83,7 @@ const UserPage = () => {
   const fetchWalletBalance = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("/api/wallet/balance", {
+  const response = await fetch(`${API_BASE}/api/wallet/balance`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -100,7 +101,7 @@ const UserPage = () => {
   const fetchUserProfile = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("/api/profile/check-completion", {
+  const response = await fetch(`${API_BASE}/api/profile/check-completion`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -144,7 +145,7 @@ const UserPage = () => {
   const fetchMatches = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("/api/matches/with-status", {
+  const response = await fetch(`${API_BASE}/api/matches/with-status`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -189,7 +190,7 @@ const UserPage = () => {
       console.log("Auth debug - Token preview:", token.substring(0, 15) + "...");
       
       // Test a wallet API call which should work
-      fetch("/api/wallet/balance", {
+  fetch(`${API_BASE}/api/wallet/balance`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       .then(res => {
@@ -212,7 +213,7 @@ const UserPage = () => {
   const handleSaveProfile = async (profileData) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("/api/profile/complete", {
+  const response = await fetch(`${API_BASE}/api/profile/complete`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -323,7 +324,7 @@ const UserPage = () => {
     setSelectedDetailsMatch(matchWithCredentials);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`/api/registrations/match/${match.id}`, { headers: { Authorization: `Bearer ${token}` } });
+  const res = await fetch(`${API_BASE}/api/registrations/match/${match.id}`, { headers: { Authorization: `Bearer ${token}` } });
       if (res.ok) {
         const data = await res.json();
         setParticipants(data);
