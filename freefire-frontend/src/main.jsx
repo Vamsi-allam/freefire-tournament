@@ -1,7 +1,7 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
-import { BrowserRouter, useNavigate } from 'react-router-dom';
+import { BrowserRouter, HashRouter, useNavigate } from 'react-router-dom';
 import App from './App';
 import store from './redux/store';
 import { initAuthGuards } from './utils/authGuards';
@@ -26,11 +26,14 @@ function Boot() {
   return <App />;
 }
 
+const useHash = import.meta.env.VITE_USE_HASH_ROUTER === 'true';
+const Router = useHash ? HashRouter : BrowserRouter;
+
 const app = (
   <Provider store={store}>
-    <BrowserRouter>
+  <Router>
       <Boot />
-    </BrowserRouter>
+  </Router>
   </Provider>
 );
 
