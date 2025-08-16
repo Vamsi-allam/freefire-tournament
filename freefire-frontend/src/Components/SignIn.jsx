@@ -5,6 +5,7 @@ import { setSupabaseSession } from '../redux/userSlice';
 import { useNavigate } from 'react-router-dom';
 
 const SignIn = () => {
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { isAuthenticated, role } = useSelector(state=>state.user);
@@ -23,7 +24,7 @@ const SignIn = () => {
         
         // Call backend to create/login user and create wallet
         try {
-          const response = await fetch('/auth/google-login', {
+          const response = await fetch(`${API_BASE}/auth/google-login`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

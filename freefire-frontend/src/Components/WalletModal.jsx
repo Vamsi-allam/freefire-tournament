@@ -9,6 +9,7 @@ import ProfileCompletionModal from './ProfileCompletionModal';
 import './WalletModal.css';
 
 const WalletModal = ({ isOpen, onClose }) => {
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
   const dispatch = useDispatch();
   const { userData } = useSelector((state) => state.user);
   const [walletData, setWalletData] = useState({
@@ -313,7 +314,7 @@ const WalletModal = ({ isOpen, onClose }) => {
   const handleProfileCompletion = async (profileData) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch('/api/profile/complete', {
+  const response = await fetch(`${API_BASE}/api/profile/complete`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

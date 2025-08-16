@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import './RegistrationModal.css';
 
 const RegistrationModal = ({ isOpen, onClose, match, onRegistrationSuccess }) => {
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
   const [players, setPlayers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -57,7 +58,7 @@ const RegistrationModal = ({ isOpen, onClose, match, onRegistrationSuccess }) =>
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/registrations', {
+  const response = await fetch(`${API_BASE}/api/registrations`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
