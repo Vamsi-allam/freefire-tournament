@@ -70,7 +70,12 @@ public class MatchService {
         try {
             when = LocalDateTime.parse(req.getScheduleDateTime());
         } catch (DateTimeParseException e) {
-            throw new IllegalArgumentException("Invalid scheduleDateTime ISO format");
+            // Accept common HTML datetime-local format without seconds (yyyy-MM-dd'T'HH:mm)
+            try {
+                when = LocalDateTime.parse(req.getScheduleDateTime() + ":00");
+            } catch (Exception ex) {
+                throw new IllegalArgumentException("Invalid scheduleDateTime. Expected ISO like 2025-08-18T12:30 or 2025-08-18T12:30:00");
+            }
         }
 
     Match match = Match.builder()

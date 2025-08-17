@@ -51,19 +51,32 @@ export async function createMatch(payload) {
 		headers: { 'Content-Type': 'application/json', ...authHeaders() },
 		body: JSON.stringify(payload)
 	});
-		if (!res.ok) { handleUnauthorized(res); throw new Error('Failed to create match'); }
+		if (!res.ok) {
+			try { handleUnauthorized(res); } catch {}
+			const text = await res.text().catch(() => '');
+			const msg = text || res.statusText || 'Failed to create match';
+			throw new Error(`[${res.status}] ${msg}`);
+		}
 	return res.json();
 }
 
 export async function listMatches() {
 	const res = await fetch(`${API_BASE}/api/matches`, { headers: authHeaders() });
-		if (!res.ok) { handleUnauthorized(res); throw new Error('Failed to list matches'); }
+		if (!res.ok) { 
+			try { handleUnauthorized(res); } catch {}
+			const text = await res.text().catch(() => '');
+			throw new Error(`[${res.status}] ${text || 'Failed to list matches'}`);
+		}
 	return res.json();
 }
 
 export async function listUpcomingMatches() {
 	const res = await fetch(`${API_BASE}/api/matches/upcoming`, { headers: authHeaders() });
-		if (!res.ok) { handleUnauthorized(res); throw new Error('Failed to list upcoming matches'); }
+		if (!res.ok) { 
+			try { handleUnauthorized(res); } catch {}
+			const text = await res.text().catch(() => '');
+			throw new Error(`[${res.status}] ${text || 'Failed to list upcoming matches'}`);
+		}
 	return res.json();
 }
 
