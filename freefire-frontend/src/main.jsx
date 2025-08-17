@@ -15,6 +15,44 @@ console.error = (...args) => {
   originalError.apply(console, args);
 };
 
+// One-time migration: move any auth/UI state from localStorage -> sessionStorage
+try {
+  if (typeof window !== 'undefined') {
+    const ls = window.localStorage;
+    const ss = window.sessionStorage;
+    const migrateKey = (key) => {
+      try {
+        const val = ls.getItem(key);
+        if (val !== null && ss.getItem(key) === null) {
+          ss.setItem(key, val);
+          ls.removeItem(key);
+        }
+      } catch {}
+    };
+
+    // Known keys our app sets
+    [
+      'token', 'userRole', 'userName', 'userEmail', 'userPhone', 'userGameId', 'userAvatar',
+      'supabaseSession', 'supabaseAccessToken', 'needsProfileCompletion',
+      'ui.lastRoute',
+      // Wallet/UI flows
+      'ui.wallet.activeSection','ui.wallet.transactionFilter','ui.wallet.showAddMoneyModal','ui.wallet.showWithdrawModal',
+      'ui.addMoney.amount','ui.addMoney.method','ui.addMoney.showUpiForm','ui.addMoney.upiPaymentData','ui.addMoney.utr',
+      'ui.user.activeTab','ui.user.showWalletModal'
+    ].forEach(migrateKey);
+
+    // Also migrate any Supabase sb-* keys (gotrue) if present
+    try {
+      for (let i = 0; i < ls.length; i++) {
+        const k = ls.key(i);
+        if (k && (k.startsWith('sb-') || k.includes('supabase'))) {
+          migrateKey(k);
+        }
+      }
+    } catch {}
+  }
+} catch {}
+
 // Install auth guards before rendering
 try { initAuthGuards(store); } catch {}
 
