@@ -17,6 +17,7 @@
     "@reduxjs/toolkit": "^2.8.2",
     "@supabase/supabase-js": "^2.55.0",
     "axios": "^1.11.0",
+    "build": "^0.1.4",
     "lucide-react": "^0.539.0",
     "qrcode": "^1.5.4",
     "react": "^19.1.1",

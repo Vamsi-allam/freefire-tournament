@@ -15,29 +15,6 @@ console.error = (...args) => {
   originalError.apply(console, args);
 };
 
-// Ensure favicon works in production by using a Vite-resolved asset URL
-try {
-  const logoUrl = new URL('./assets/logo.jpg', import.meta.url).href;
-  const ensureLink = (rel) => {
-    let link = document.querySelector(`link[rel="${rel}"]`);
-    if (!link) {
-      link = document.createElement('link');
-      link.rel = rel;
-      document.head.appendChild(link);
-    }
-    link.href = logoUrl;
-    if (rel === 'icon' || rel === 'shortcut icon') link.type = 'image/jpeg';
-  };
-  ['icon', 'shortcut icon', 'apple-touch-icon'].forEach(ensureLink);
-} catch {}
-
-// Ensure correct page title in all environments
-try {
-  if (document && document.title !== 'Prime Arena') {
-    document.title = 'Prime Arena';
-  }
-} catch {}
-
 // One-time migration: move any auth/UI state from localStorage -> sessionStorage
 // and purge lingering localStorage entries so DevTools no longer shows them.
 try {
