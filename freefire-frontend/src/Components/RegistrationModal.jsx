@@ -25,7 +25,8 @@ const RegistrationModal = ({ isOpen, onClose, match, onRegistrationSuccess }) =>
     switch (matchType?.toUpperCase()) {
       case 'SOLO': return 1;
       case 'DUO': return 2;
-      case 'SQUAD': return 4;
+  case 'SQUAD': return 4;
+  case 'CLASH_SQUAD': return 4;
       default: return 1;
     }
   };
@@ -104,7 +105,8 @@ const RegistrationModal = ({ isOpen, onClose, match, onRegistrationSuccess }) =>
   const playerLabels = {
     SOLO: ['Player'],
     DUO: ['Player 1 (You)', 'Player 2 (Partner)'],
-    SQUAD: ['Player 1 (You)', 'Player 2', 'Player 3', 'Player 4']
+    SQUAD: ['Player 1 (You)', 'Player 2', 'Player 3', 'Player 4'],
+    CLASH_SQUAD: ['Player 1 (You)', 'Player 2', 'Player 3', 'Player 4']
   };
 
   return (
