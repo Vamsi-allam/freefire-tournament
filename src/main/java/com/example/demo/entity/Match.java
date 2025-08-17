@@ -20,7 +20,7 @@ public class Match {
     private String game;  // Free Fire
 
     @Enumerated(EnumType.STRING)
-    private MatchType matchType; // SOLO, DUO, SQUAD, CLASH_SQUAD
+    private MatchType matchType; // SOLO, DUO, SQUAD
 
     @Enumerated(EnumType.STRING)
     private MatchStatus status; // OPEN, UPCOMING, LIVE, COMPLETED
@@ -36,7 +36,7 @@ public class Match {
     private LocalDateTime scheduledAt;
 
     private String mapName; // Bermuda etc.
-    private String gameMode; // SOLO / DUO / SQUAD / CLASH_SQUAD
+    private String gameMode; // SOLO / DUO / SQUAD
 
     @Column(length = 2000)
     private String rules; // shared tournament rules
@@ -48,7 +48,4 @@ public class Match {
 
     // Registration tracking
     private int registeredTeams; // current registrations
-
-    // Clash Squad specific
-    private Integer rounds; // e.g. 7 or 13 for CLASH_SQUAD
 }

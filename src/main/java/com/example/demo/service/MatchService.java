@@ -34,41 +34,18 @@ public class MatchService {
     public Match create(MatchCreateRequest req) {
         MatchType type = deriveType(req.getTitle(), req.getMatchType());
         int slots = switch (type) {
-            case SOLO -> 48;
-            case DUO -> 24;
-            case SQUAD -> 12;
-            case CLASH_SQUAD -> 2; // 4v4 has exactly two teams
+            case SOLO ->
+                48;
+            case DUO ->
+                24;
+            case SQUAD ->
+                12;
         };
-    Integer feeObj = req.getEntryFee();
-    int entryFee = (feeObj == null) ? 0 : feeObj;
-        // Validate and normalize rounds for CLASH_SQUAD
-        Integer rounds = null;
-        if (type == MatchType.CLASH_SQUAD) {
-            Integer rr = req.getRounds();
-            int roundsVal = (rr == null) ? 7 : rr;
-            if (roundsVal != 7 && roundsVal != 13) {
-                throw new IllegalArgumentException("For CLASH_SQUAD, rounds must be 7 or 13");
-            }
-            rounds = roundsVal; // autobox to Integer for entity
-        }
-
-        // Prize computation varies by type
-        int totalPool;
-        int prize1;
-        int prize2;
-        int prize3;
-        if (type == MatchType.CLASH_SQUAD) {
-            // Two teams pay entry; 85% of total goes to winners (single prize)
-            totalPool = (int) Math.round(entryFee * slots * 0.85);
-            prize1 = totalPool;
-            prize2 = 0;
-            prize3 = 0;
-        } else {
-            totalPool = entryFee * slots;
-            prize1 = (int) Math.round(totalPool * 0.40);
-            prize2 = (int) Math.round(totalPool * 0.30);
-            prize3 = (int) Math.round(totalPool * 0.20);
-        }
+        int entryFee = req.getEntryFee() != null ? req.getEntryFee().intValue() : 0;
+        int totalPool = entryFee * slots;
+        int prize1 = (int) Math.round(totalPool * 0.40);
+        int prize2 = (int) Math.round(totalPool * 0.30);
+        int prize3 = (int) Math.round(totalPool * 0.20);
         LocalDateTime when;
         try {
             when = LocalDateTime.parse(req.getScheduleDateTime());
@@ -91,27 +68,19 @@ public class MatchService {
                 .mapName(req.getMapName())
                 .gameMode(req.getGameMode())
                 .rules(req.getRules())
-                .rounds(type == MatchType.CLASH_SQUAD ? rounds : null)
                 .build();
         return matchRepository.save(match);
     }
 
     private MatchType deriveType(String title, String provided) {
         if (provided != null && !provided.isBlank()) {
-            String p = provided.trim().toUpperCase();
-            if (p.equals("CLASH_SQUAD") || p.equals("CLASH") || p.equals("4V4") || p.equals("4VS4") || p.equals("CLASH-SQUAD")) {
-                return MatchType.CLASH_SQUAD;
-            }
-            return MatchType.valueOf(p);
+            return MatchType.valueOf(provided.toUpperCase());
         }
         if (title == null) {
             return MatchType.SOLO; // default
 
         }
         String lower = title.toLowerCase();
-        if (lower.contains("clash") || lower.contains("4v4") || lower.contains("4 vs 4") || lower.contains("clash squad")) {
-            return MatchType.CLASH_SQUAD;
-        }
         if (lower.contains("duo")) {
             return MatchType.DUO;
         }
@@ -174,44 +143,17 @@ public class MatchService {
 
         MatchStatus previousStatus = existingMatch.getStatus();
 
-        // Update fields (with CLASH_SQUAD strict enforcement)
+        // Update fields
         existingMatch.setTitle(updatedMatch.getTitle());
         existingMatch.setGame(updatedMatch.getGame());
         existingMatch.setMatchType(updatedMatch.getMatchType());
         existingMatch.setStatus(updatedMatch.getStatus());
-
-        if (updatedMatch.getMatchType() == MatchType.CLASH_SQUAD) {
-            // Force exactly 2 slots and validate rounds
-            existingMatch.setSlots(2);
-            Integer updR = updatedMatch.getRounds();
-            int rounds = (updR == null) ? 7 : updR;
-            if (rounds != 7 && rounds != 13) {
-                throw new IllegalArgumentException("For CLASH_SQUAD, rounds must be 7 or 13");
-            }
-            existingMatch.setRounds(rounds);
-
-            // Recompute prize to 85% winner-takes-all based on entryFee and 2 slots
-            existingMatch.setEntryFee(updatedMatch.getEntryFee());
-            int entryFee = updatedMatch.getEntryFee();
-            int totalPool = (int) Math.round(entryFee * 2 * 0.85);
-            existingMatch.setPrizePool(totalPool);
-            existingMatch.setPrizeFirst(totalPool);
-            existingMatch.setPrizeSecond(0);
-            existingMatch.setPrizeThird(0);
-        } else {
-            // Non-CLASH matches keep provided values
-            existingMatch.setSlots(updatedMatch.getSlots());
-            existingMatch.setEntryFee(updatedMatch.getEntryFee());
-            existingMatch.setPrizePool(updatedMatch.getPrizePool());
-            existingMatch.setPrizeFirst(updatedMatch.getPrizeFirst());
-            existingMatch.setPrizeSecond(updatedMatch.getPrizeSecond());
-            existingMatch.setPrizeThird(updatedMatch.getPrizeThird());
-            existingMatch.setRounds(null);
-        }
-
+        existingMatch.setSlots(updatedMatch.getSlots());
+        existingMatch.setEntryFee(updatedMatch.getEntryFee());
+        existingMatch.setPrizePool(updatedMatch.getPrizePool());
         existingMatch.setScheduledAt(updatedMatch.getScheduledAt());
         existingMatch.setMapName(updatedMatch.getMapName());
-		existingMatch.setGameMode(updatedMatch.getGameMode());
+        existingMatch.setGameMode(updatedMatch.getGameMode());
         existingMatch.setRules(updatedMatch.getRules());
         existingMatch.setRoomId(updatedMatch.getRoomId());
         existingMatch.setRoomPassword(updatedMatch.getRoomPassword());

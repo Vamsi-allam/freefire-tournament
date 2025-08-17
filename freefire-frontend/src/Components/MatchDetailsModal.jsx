@@ -61,8 +61,6 @@ const MatchDetailsModal = ({ isOpen, onClose, match, userRegistrations = [], par
         return { players: '2 Players', teamSize: '24 Teams (48 Players)', description: 'Team up with 1 partner' };
       case 'SQUAD':
         return { players: '4 Players', teamSize: '12 Teams (48 Players)', description: 'Team up with 3 friends' };
-      case 'CLASH_SQUAD':
-        return { players: '4 Players', teamSize: '2 Teams (4v4)', description: 'Clash Squad 4v4 (Best of 7 or 13 rounds)' };
       default:
         return { players: 'Unknown', teamSize: 'Unknown', description: 'Match details' };
     }
@@ -224,12 +222,6 @@ const MatchDetailsModal = ({ isOpen, onClose, match, userRegistrations = [], par
                 <span className="detail-label">Game Mode:</span>
                 <span className="detail-value">{match.gameMode || match.matchType}</span>
               </div>
-              {String(match.matchType||'').toUpperCase()==='CLASH_SQUAD' && (
-                <div className="detail-item">
-                  <span className="detail-label">Rounds:</span>
-                  <span className="detail-value">{match.rounds ? `Best of ${match.rounds}` : 'Best of 7'}</span>
-                </div>
-              )}
             </div>
           </div>
 
@@ -244,9 +236,6 @@ const MatchDetailsModal = ({ isOpen, onClose, match, userRegistrations = [], par
               <div className="prize-item main-prize">
                 <span className="prize-label">Configured Pool</span>
                 <span className="prize-amount total">₹{match.prizePool}</span>
-                {String(match.matchType||'').toUpperCase()==='CLASH_SQUAD' && (
-                  <span style={{marginLeft:8, fontSize:'0.85em', opacity:0.8}}>(85% winner takes all)</span>
-                )}
               </div>
               {prizeInfo && (
                 <div className="prize-item main-prize">
@@ -301,37 +290,22 @@ const MatchDetailsModal = ({ isOpen, onClose, match, userRegistrations = [], par
                     </div>
                   );
                 }
-                if (t === 'CLASH_SQUAD') {
-                  return (
-                    <div>
-                      <div className="prize-positions">
-                        <div className="position-prize first">
-                          <span className="position">🏆 Winner</span>
-                          <span className="amount">85% of total entry fees</span>
-                        </div>
-                      </div>
-                      <div className="prize-note" style={{marginTop:'6px', opacity:.85}}>
-                        2 teams (4v4). Winner takes all (85% of total collected entry fees). Rounds: Best of 7 or 13.
-                      </div>
-                    </div>
-                  );
-                }
                 // SQUAD and others: Top 3 (40/30/20)
                 return (
-                    <div className="prize-positions">
-                      <div className="position-prize first">
-                        <span className="position">🥇 1st</span>
-                        <span className="amount">40% of pool</span>
-                      </div>
-                      <div className="position-prize second">
-                        <span className="position">🥈 2nd</span>
-                        <span className="amount">30% of pool</span>
-                      </div>
-                      <div className="position-prize third">
-                        <span className="position">🥉 3rd</span>
-                        <span className="amount">20% of pool</span>
-                      </div>
+                  <div className="prize-positions">
+                    <div className="position-prize first">
+                      <span className="position">� 1st</span>
+                      <span className="amount">40% of pool</span>
                     </div>
+                    <div className="position-prize second">
+                      <span className="position">🥈 2nd</span>
+                      <span className="amount">30% of pool</span>
+                    </div>
+                    <div className="position-prize third">
+                      <span className="position">🥉 3rd</span>
+                      <span className="amount">20% of pool</span>
+                    </div>
+                  </div>
                 );
               })()}
             </div>

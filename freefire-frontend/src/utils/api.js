@@ -39,66 +39,48 @@ function handleUnauthorized(res) {
 // In production (Vercel), set VITE_API_BASE_URL to your Render backend URL
 const API_BASE = import.meta.env.VITE_API_BASE_URL || ""; // keep empty for same-origin/proxy
 
-function getToken({ preferSupabase = false } = {}) {
-	const supa = sessionStorage.getItem('supabaseAccessToken');
-	const be = sessionStorage.getItem('token');
-	if (preferSupabase) return supa || be || null;
-	return be || supa || null;
-}
-
 function authHeaders() {
-	const token = getToken();
-	return token ? { 'Authorization': `Bearer ${token}` } : {};
-}
-
-function adminAuthHeaders() {
-	// Prefer backend-issued JWT for admin-only endpoints; Supabase token as fallback if needed
-	const token = getToken({ preferSupabase: false });
+	// Read token from sessionStorage
+	const token = sessionStorage.getItem('token');
 	return token ? { 'Authorization': `Bearer ${token}` } : {};
 }
 
 export async function createMatch(payload) {
 	const res = await fetch(`${API_BASE}/api/matches`, {
 		method: 'POST',
-		headers: { 'Content-Type': 'application/json', ...adminAuthHeaders() },
+		headers: { 'Content-Type': 'application/json', ...authHeaders() },
 		body: JSON.stringify(payload)
 	});
-	if (!res.ok) {
-		handleUnauthorized(res);
-		try { const data = await res.json(); throw new Error(data.message || data.error || 'Failed to create match'); }
-		catch { const t = await res.text().catch(()=> ''); throw new Error(t || 'Failed to create match'); }
-	}
+		if (!res.ok) { handleUnauthorized(res); throw new Error('Failed to create match'); }
 	return res.json();
 }
 
 export async function listMatches() {
-	// Public GET endpoint: do not send Authorization to avoid 401/403 on invalid tokens
-	const res = await fetch(`${API_BASE}/api/matches`);
-	if (!res.ok) { handleUnauthorized(res); throw new Error('Failed to list matches'); }
+	const res = await fetch(`${API_BASE}/api/matches`, { headers: authHeaders() });
+		if (!res.ok) { handleUnauthorized(res); throw new Error('Failed to list matches'); }
 	return res.json();
 }
 
 export async function listUpcomingMatches() {
-	// Public GET endpoint: do not send Authorization to avoid 401/403 on invalid tokens
-	const res = await fetch(`${API_BASE}/api/matches/upcoming`);
-	if (!res.ok) { handleUnauthorized(res); throw new Error('Failed to list upcoming matches'); }
+	const res = await fetch(`${API_BASE}/api/matches/upcoming`, { headers: authHeaders() });
+		if (!res.ok) { handleUnauthorized(res); throw new Error('Failed to list upcoming matches'); }
 	return res.json();
 }
 
 export async function updateMatch(id, matchData) {
 	const res = await fetch(`${API_BASE}/api/matches/${id}`, {
 		method: 'PUT',
-		headers: { 'Content-Type': 'application/json', ...adminAuthHeaders() },
+		headers: { 'Content-Type': 'application/json', ...authHeaders() },
 		body: JSON.stringify(matchData)
 	});
-	if (!res.ok) { handleUnauthorized(res); throw new Error('Failed to update match'); }
+		if (!res.ok) { handleUnauthorized(res); throw new Error('Failed to update match'); }
 	return res.json();
 }
 
 export async function deleteMatch(id) {
 	const res = await fetch(`${API_BASE}/api/matches/${id}`, {
 		method: 'DELETE',
-		headers: { ...adminAuthHeaders() }
+		headers: { ...authHeaders() }
 	});
 	if (!res.ok) { handleUnauthorized(res); throw new Error('Failed to delete match'); }
 	// Backend may return empty body for DELETE; try to parse JSON, else return text
@@ -108,7 +90,7 @@ export async function deleteMatch(id) {
 export async function saveCredentials(id, roomId, roomPassword) {
 	const res = await fetch(`${API_BASE}/api/matches/${id}/credentials`, {
 		method: 'POST',
-	headers: { 'Content-Type': 'application/json', ...adminAuthHeaders() },
+		headers: { 'Content-Type': 'application/json', ...authHeaders() },
 		body: JSON.stringify({ roomId, roomPassword })
 	});
 		if (!res.ok) { 
@@ -124,7 +106,7 @@ export async function saveCredentials(id, roomId, roomPassword) {
 export async function sendCredentialsToPlayers(id) {
 	const res = await fetch(`${API_BASE}/api/matches/${id}/send-credentials`, {
 		method: 'POST',
-	headers: { 'Content-Type': 'application/json', ...adminAuthHeaders() }
+		headers: { 'Content-Type': 'application/json', ...authHeaders() }
 	});
 		if (!res.ok) { 
 		const txt = await res.text().catch(() => '');
@@ -221,7 +203,7 @@ export async function verifyWithdrawalOtp(otpCode) {
 // Match Results API functions
 export async function getMatchParticipants(matchId) {
 	const res = await fetch(`${API_BASE}/api/match-results/${matchId}/participants`, { 
-		headers: adminAuthHeaders() 
+		headers: authHeaders() 
 	});
 		if (!res.ok) { handleUnauthorized(res); throw new Error('Failed to get match participants'); }
 	return res.json();
@@ -229,7 +211,7 @@ export async function getMatchParticipants(matchId) {
 
 export async function getMatchResults(matchId) {
 	const res = await fetch(`${API_BASE}/api/match-results/${matchId}/results`, { 
-		headers: adminAuthHeaders() 
+		headers: authHeaders() 
 	});
 		if (!res.ok) { handleUnauthorized(res); throw new Error('Failed to get match results'); }
 	return res.json();
@@ -238,7 +220,7 @@ export async function getMatchResults(matchId) {
 export async function updateMatchResult(matchId, resultData) {
 	const res = await fetch(`${API_BASE}/api/match-results/${matchId}/update-result`, {
 		method: 'PUT',
-		headers: { 'Content-Type': 'application/json', ...adminAuthHeaders() },
+		headers: { 'Content-Type': 'application/json', ...authHeaders() },
 		body: JSON.stringify(resultData)
 	});
 		if (!res.ok) { handleUnauthorized(res); throw new Error('Failed to update match result'); }
@@ -247,7 +229,7 @@ export async function updateMatchResult(matchId, resultData) {
 
 export async function getPrizeDistribution(matchId) {
 	const res = await fetch(`${API_BASE}/api/match-results/${matchId}/prize-distribution`, { 
-		headers: adminAuthHeaders() 
+		headers: authHeaders() 
 	});
 		if (!res.ok) { handleUnauthorized(res); throw new Error('Failed to get prize distribution'); }
 	return res.json();
@@ -256,7 +238,7 @@ export async function getPrizeDistribution(matchId) {
 export async function creditAllPrizes(matchId) {
 	const res = await fetch(`${API_BASE}/api/match-results/${matchId}/credit-all-prizes`, {
 		method: 'POST',
-		headers: { 'Content-Type': 'application/json', ...adminAuthHeaders() }
+		headers: { 'Content-Type': 'application/json', ...authHeaders() }
 	});
 		if (!res.ok) { handleUnauthorized(res); throw new Error('Failed to credit prizes'); }
 	return res.text();

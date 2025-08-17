@@ -146,8 +146,6 @@ public class MatchController {
                 13;     // minimum duo teams
             case SQUAD ->
                 7;   // minimum squad teams
-            case CLASH_SQUAD ->
-                2;   // 4v4 requires two teams
         };
     }
 

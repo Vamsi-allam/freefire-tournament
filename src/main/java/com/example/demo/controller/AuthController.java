@@ -1,7 +1,6 @@
 package com.example.demo.controller;
 
 import java.util.Map;
-import java.util.Arrays;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,9 +28,6 @@ public class AuthController {
     private final UserRepository userRepository;
     private final WalletService walletService;
     private final JwtService jwtService;
-
-    @Value("${app.admin.emails:}")
-    private String adminEmailsCsv;
 
     // Comma-separated list of admin emails (configure via application.properties or env ADMIN_EMAILS)
     @PostMapping("/register")
@@ -92,11 +88,7 @@ public class AuthController {
             }
 
             // Promote/demote user role based on configured admin emails (idempotent)
-            Role desiredRole = resolveRoleFromEmail(email);
-            if (desiredRole != user.getRole()) {
-                user.setRole(desiredRole);
-                userRepository.save(user);
-            }
+            
 
             // Generate JWT token for the user
             String token = jwtService.generateToken(user.getEmail());
@@ -119,12 +111,4 @@ public class AuthController {
 
     // Note: Password-based login is removed as we're using Google OAuth
     
-    private Role resolveRoleFromEmail(String email) {
-        if (email == null || email.isBlank()) return Role.USER;
-        if (adminEmailsCsv == null || adminEmailsCsv.isBlank()) return Role.USER;
-        return Arrays.stream(adminEmailsCsv.split(","))
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .anyMatch(admin -> admin.equalsIgnoreCase(email)) ? Role.ADMIN : Role.USER;
-    }
 }

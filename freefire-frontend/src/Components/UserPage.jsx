@@ -166,8 +166,12 @@ const UserPage = () => {
 
   const fetchMatches = async () => {
     try {
-      // Public-ish endpoint (GET); avoid sending Authorization to prevent 403 on invalid/expired token
-      const response = await fetch(`${API_BASE}/api/matches/with-status`);
+  const token = sessionStorage.getItem("token");
+  const response = await fetch(`${API_BASE}/api/matches/with-status`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       if (response.ok) {
         const data = await response.json();
         setMatches(data);
@@ -281,8 +285,6 @@ const UserPage = () => {
         return "bg-green-500";
       case "squad":
         return "bg-purple-500";
-      case "clash_squad":
-        return "bg-orange-500";
       default:
         return "bg-gray-500";
     }
