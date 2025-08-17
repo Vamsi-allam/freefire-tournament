@@ -368,9 +368,9 @@ const UserPage = () => {
     (reg) => reg.match?.status === "UPCOMING" && reg.status === "CONFIRMED"
   );
   const liveRegistrations = userRegistrations.filter((reg) => reg.match?.status === "LIVE");
-  const completedRegistrations = userRegistrations.filter((reg) => 
-    reg.match?.status === "COMPLETED" || reg.match?.status === "CANCELLED"
-  );
+  const completedRegistrations = userRegistrations
+    .filter((reg) => ["COMPLETED", "CANCELLED"].includes((reg.match?.status || '').toUpperCase()))
+    .sort((a,b) => new Date(b.match?.scheduledAt || b.match?.date || 0) - new Date(a.match?.scheduledAt || a.match?.date || 0));
 
   // Derived statistics for dashboard (only include actually completed matches, not cancelled ones)
   const actuallyCompletedRegistrations = userRegistrations.filter((reg) => reg.match?.status === "COMPLETED");
