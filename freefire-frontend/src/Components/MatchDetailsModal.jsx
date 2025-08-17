@@ -140,6 +140,38 @@ const MatchDetailsModal = ({ isOpen, onClose, match, userRegistrations = [], par
   const matchTypeInfo = getMatchTypeInfo(match.matchType);
   const progressPercentage = (match.registeredTeams / match.slots) * 100;
 
+  // Compute status badge similar to UserPage cards
+  const computeStatusBadge = () => {
+    const statusUpper = (match.status || '').toString().toUpperCase();
+    // Terminal states
+    if (statusUpper === 'CANCELLED') return { label: 'CANCELLED', className: 'cancelled' };
+    if (statusUpper === 'COMPLETED') return { label: 'COMPLETED', className: 'completed' };
+
+    // Parse schedule and compute minutes until match
+    const nowTs = Date.now();
+    const parsed = Date.parse(match.scheduledAt || match.date || '');
+    const scheduledMs = isNaN(parsed) ? Number.POSITIVE_INFINITY : parsed;
+    const minutesUntilMatch = Math.floor((scheduledMs - nowTs) / (1000 * 60));
+
+    // Live if backend says LIVE, or within time-based live window
+    if (statusUpper === 'LIVE' || (minutesUntilMatch <= 0 && minutesUntilMatch > -90)) {
+      return { label: 'LIVE', className: 'live' };
+    }
+
+    // Registration closed window (7 minutes before start), only for OPEN/UPCOMING
+    if (scheduledMs !== Number.POSITIVE_INFINITY && (statusUpper === 'OPEN' || statusUpper === 'UPCOMING')) {
+      const registrationCloseMs = scheduledMs - 7 * 60 * 1000;
+      if (nowTs >= registrationCloseMs) {
+        return { label: 'CLOSED', className: 'closed' };
+      }
+    }
+
+    // Default to existing status
+    if (statusUpper === 'UPCOMING') return { label: 'UPCOMING', className: 'upcoming' };
+    return { label: statusUpper || 'OPEN', className: (statusUpper || 'OPEN').toLowerCase() };
+  };
+  const statusBadge = computeStatusBadge();
+
   // Find current user's registration for this match (to reveal only their slot)
   const myRegistration = isUserRegistered
     ? userRegistrations.find(r => (r.matchId || r.match?.id) === match.id && r.status === 'CONFIRMED')
@@ -162,8 +194,8 @@ const MatchDetailsModal = ({ isOpen, onClose, match, userRegistrations = [], par
               <span className={`match-type-badge ${match.matchType?.toLowerCase()}`}>
                 {match.matchType?.toUpperCase()}
               </span>
-              <span className="match-status-badge open">
-                {match.status?.toUpperCase()}
+              <span className={`match-status-badge ${statusBadge.className}`}>
+                {statusBadge.label}
               </span>
             </div>
           </div>

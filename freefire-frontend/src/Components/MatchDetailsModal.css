@@ -49,6 +49,7 @@
   align-items: flex-start;
   padding: 2rem 2rem 1rem 2rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative; /* allow absolute close button */
 }
 
 .match-title-section h2 {
@@ -90,13 +91,18 @@
 }
 
 .match-status-badge {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
   color: white;
   padding: 0.4rem 1rem;
   border-radius: 20px;
   font-weight: 600;
   font-size: 0.85rem;
 }
+.match-status-badge.open { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.match-status-badge.upcoming { background: linear-gradient(135deg, #60a5fa, #2563eb); }
+.match-status-badge.live { background: linear-gradient(135deg, #ef4444, #dc2626); box-shadow: 0 0 0 4px rgba(239,68,68,.15) inset; }
+.match-status-badge.closed { background: linear-gradient(135deg, #6b7280, #4b5563); }
+.match-status-badge.completed { background: linear-gradient(135deg, #10b981, #059669); }
+.match-status-badge.cancelled { background: linear-gradient(135deg, #9ca3af, #6b7280); }
 
 .modal-close-btn {
   background: rgba(255, 255, 255, 0.1);
@@ -112,6 +118,10 @@
   justify-content: center;
   transition: all 0.2s;
   flex-shrink: 0;
+  position: absolute; /* keep in header top-right even on mobile */
+  top: 12px;
+  right: 12px;
+  z-index: 5;
 }
 
 .modal-close-btn:hover {
@@ -412,13 +422,41 @@
   background: rgba(255, 255, 255, 0.03);
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;             /* ensure proper stacking */
+  flex-direction: column;
+  align-items: center;
+  position: relative;        /* for background lock positioning */
+  overflow: hidden;
 }
 
-.lock-icon {
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
-  opacity: 0.7;
+/* Hide the HTML lock node and use a CSS watermark instead to avoid stacking issues */
+.room-details-locked .lock-icon { display: none !important; }
+
+/* Watermark lock behind the content */
+.room-details-locked::after {
+  content: '🔒';
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: clamp(3rem, 18vw, 6rem);
+  opacity: 0.10;
+  line-height: 1;
+  pointer-events: none;
+  z-index: 0;
 }
+
+@media (max-width: 480px) {
+  .room-details-locked::after {
+    top: 40%;                 /* sit a bit higher on small screens */
+    opacity: 0.12;            /* slightly stronger on tiny displays */
+  }
+}
+
+/* Ensure text/content sits above the background lock */
+.room-details-locked h4,
+.room-details-locked p,
+.room-details-locked .countdown-info { position: relative; z-index: 1; }
 
 .room-details-locked h4 {
   color: #e5e7eb;
@@ -614,6 +652,9 @@
     align-items: flex-start;
     gap: 1rem;
   }
+
+  /* keep space for the absolute close button on small screens */
+  .match-title-section h2 { padding-right: 2.2rem; }
 
   .match-details-content {
     padding: 1rem 1.5rem;
