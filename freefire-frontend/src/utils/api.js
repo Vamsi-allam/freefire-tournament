@@ -56,13 +56,15 @@ export async function createMatch(payload) {
 }
 
 export async function listMatches() {
-	const res = await fetch(`${API_BASE}/api/matches`, { headers: authHeaders() });
+	// Public GET endpoint: do not send Authorization to avoid 401/403 on invalid tokens
+	const res = await fetch(`${API_BASE}/api/matches`);
 		if (!res.ok) { handleUnauthorized(res); throw new Error('Failed to list matches'); }
 	return res.json();
 }
 
 export async function listUpcomingMatches() {
-	const res = await fetch(`${API_BASE}/api/matches/upcoming`, { headers: authHeaders() });
+	// Public GET endpoint: do not send Authorization to avoid 401/403 on invalid tokens
+	const res = await fetch(`${API_BASE}/api/matches/upcoming`);
 		if (!res.ok) { handleUnauthorized(res); throw new Error('Failed to list upcoming matches'); }
 	return res.json();
 }

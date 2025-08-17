@@ -166,12 +166,8 @@ const UserPage = () => {
 
   const fetchMatches = async () => {
     try {
-  const token = sessionStorage.getItem("token");
-  const response = await fetch(`${API_BASE}/api/matches/with-status`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      // Public-ish endpoint (GET); avoid sending Authorization to prevent 403 on invalid/expired token
+      const response = await fetch(`${API_BASE}/api/matches/with-status`);
       if (response.ok) {
         const data = await response.json();
         setMatches(data);

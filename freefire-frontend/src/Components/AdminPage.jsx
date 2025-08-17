@@ -589,7 +589,9 @@ const AdminPage = () => {
                           Registered: {m.registeredTeams || 0}/{m.slots} teams
                         </div>
                         <div className="ap-prize-info">
-                          Prize Pool: ₹{m.prizePool}
+                          Prize Pool: ₹{m.prizePool} {m.matchType === 'CLASH_SQUAD' && (
+                            <span className="ap-note">(85% winner-takes-all)</span>
+                          )}
                         </div>
                       </div>
                     </div>
