@@ -2,14 +2,19 @@ import React, { useState, useEffect } from 'react';
 import QRCode from 'qrcode';
 import './AddMoneyModal.css';
 import { initiateUpi, submitUpiUtr } from '../utils/api';
-import { Snackbar, Alert } from '@mui/material';
+import { Snackbar, Alert, IconButton, Tooltip } from '@mui/material';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 
 const AddMoneyModal = ({ isOpen, onClose, onAddMoney }) => {
   const [amount, setAmount] = useState(() => {
     try { return sessionStorage.getItem('ui.addMoney.amount') || ''; } catch { return ''; }
   });
   const [selectedMethod, setSelectedMethod] = useState(() => {
-    try { return sessionStorage.getItem('ui.addMoney.method') || 'upi'; } catch { return 'upi'; }
+    // Force default to QR Code; if an older session saved 'upi', override to 'qrcode'
+    try {
+      const saved = sessionStorage.getItem('ui.addMoney.method');
+      return saved && saved !== 'upi' ? saved : 'qrcode';
+    } catch { return 'qrcode'; }
   });
   const [isLoading, setIsLoading] = useState(false);
   const [showUpiForm, setShowUpiForm] = useState(() => {
@@ -31,6 +36,16 @@ const AddMoneyModal = ({ isOpen, onClose, onAddMoney }) => {
   const openSnack = (message, severity = 'info') => setSnack({ open: true, message, severity });
   const closeSnack = () => setSnack(s => ({ ...s, open: false }));
 
+  // Copy helper
+  const handleCopy = async (text) => {
+    try {
+      await navigator.clipboard.writeText(String(text || ''));
+      openSnack('Copied to clipboard', 'success');
+    } catch {
+      openSnack('Failed to copy', 'error');
+    }
+  };
+
   // Fixed payee details provided by the user
   const PAYEE_VPA = 'paytm.s1p437a@pty';
   const PAYEE_NAME = 'PrimeArena';
@@ -42,7 +57,8 @@ const AddMoneyModal = ({ isOpen, onClose, onAddMoney }) => {
   useEffect(() => {
     if (!isOpen) {
       setAmount('');
-      setSelectedMethod('upi');
+  // Reset to QR Code only (UPI method temporarily disabled in UI)
+  setSelectedMethod('qrcode');
       setIsLoading(false);
       setShowUpiForm(false);
       setUpiPaymentData(null);
@@ -273,17 +289,20 @@ const AddMoneyModal = ({ isOpen, onClose, onAddMoney }) => {
           <div className="payment-method-section">
             <label>Payment Method</label>
             <div className={`payment-methods ${showUpiForm || upiPaymentData ? 'locked' : ''}`}>
-              <div 
-                className={`payment-method ${selectedMethod === 'upi' ? 'selected' : ''}`}
-                onClick={() => { if (!(showUpiForm || upiPaymentData)) { setSelectedMethod('upi'); } }}
-              >
-                <div className="payment-icon upi-icon">📱</div>
-                <div className="payment-info">
-                  <div className="payment-name">UPI Payment</div>
-                  <div className="payment-desc">Pay via PhonePe, GooglePay, Paytm or QR Code</div>
+              {/*
+                UPI payment selector temporarily disabled in UI per request; keep code for future.
+                <div 
+                  className={`payment-method ${selectedMethod === 'upi' ? 'selected' : ''}`}
+                  onClick={() => { if (!(showUpiForm || upiPaymentData)) { setSelectedMethod('upi'); } }}
+                >
+                  <div className="payment-icon upi-icon">📱</div>
+                  <div className="payment-info">
+                    <div className="payment-name">UPI Payment</div>
+                    <div className="payment-desc">Pay via PhonePe, GooglePay, Paytm or QR Code</div>
+                  </div>
+                  <div className={`radio ${selectedMethod === 'upi' ? 'selected' : ''}`}></div>
                 </div>
-                <div className={`radio ${selectedMethod === 'upi' ? 'selected' : ''}`}></div>
-              </div>
+              */}
 
               <div 
                 className={`payment-method ${selectedMethod === 'qrcode' ? 'selected' : ''}`}
@@ -380,7 +399,19 @@ const AddMoneyModal = ({ isOpen, onClose, onAddMoney }) => {
                 )}
                 <div className="detail-row">
                   <span className="label">Payee UPI:</span>
-                  <span className="value">{upiPaymentData.payeeVpa}</span>
+                  <span className="value">
+                    {upiPaymentData.payeeVpa}
+                    <Tooltip title="Copy" arrow>
+                      <IconButton
+                        size="small"
+                        onClick={() => handleCopy(upiPaymentData.payeeVpa)}
+                        sx={{ color: '#3b82f6', ml: 0.8, p: 0.5 }}
+                        aria-label="Copy UPI ID"
+                      >
+                        <ContentCopyIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </span>
                 </div>
                 <div className="detail-row">
                   <span className="label">Payee Name:</span>
