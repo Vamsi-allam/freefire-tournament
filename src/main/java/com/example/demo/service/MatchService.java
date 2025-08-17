@@ -34,18 +34,29 @@ public class MatchService {
     public Match create(MatchCreateRequest req) {
         MatchType type = deriveType(req.getTitle(), req.getMatchType());
         int slots = switch (type) {
-            case SOLO ->
-                48;
-            case DUO ->
-                24;
-            case SQUAD ->
-                12;
+            case SOLO -> 48;
+            case DUO -> 24;
+            case SQUAD -> 12;
+            case CLASH_SQUAD -> 2; // 4v4 has exactly two teams
         };
         int entryFee = req.getEntryFee() != null ? req.getEntryFee().intValue() : 0;
-        int totalPool = entryFee * slots;
-        int prize1 = (int) Math.round(totalPool * 0.40);
-        int prize2 = (int) Math.round(totalPool * 0.30);
-        int prize3 = (int) Math.round(totalPool * 0.20);
+        // Prize computation varies by type
+        int totalPool;
+        int prize1;
+        int prize2;
+        int prize3;
+        if (type == MatchType.CLASH_SQUAD) {
+            // Two teams pay entry; 85% of total goes to winners (single prize)
+            totalPool = (int) Math.round(entryFee * slots * 0.85);
+            prize1 = totalPool;
+            prize2 = 0;
+            prize3 = 0;
+        } else {
+            totalPool = entryFee * slots;
+            prize1 = (int) Math.round(totalPool * 0.40);
+            prize2 = (int) Math.round(totalPool * 0.30);
+            prize3 = (int) Math.round(totalPool * 0.20);
+        }
         LocalDateTime when;
         try {
             when = LocalDateTime.parse(req.getScheduleDateTime());
@@ -68,19 +79,27 @@ public class MatchService {
                 .mapName(req.getMapName())
                 .gameMode(req.getGameMode())
                 .rules(req.getRules())
+                .rounds(type == MatchType.CLASH_SQUAD ? (req.getRounds() == null ? 7 : req.getRounds()) : null)
                 .build();
         return matchRepository.save(match);
     }
 
     private MatchType deriveType(String title, String provided) {
         if (provided != null && !provided.isBlank()) {
-            return MatchType.valueOf(provided.toUpperCase());
+            String p = provided.trim().toUpperCase();
+            if (p.equals("CLASH_SQUAD") || p.equals("CLASH") || p.equals("4V4") || p.equals("4VS4") || p.equals("CLASH-SQUAD")) {
+                return MatchType.CLASH_SQUAD;
+            }
+            return MatchType.valueOf(p);
         }
         if (title == null) {
             return MatchType.SOLO; // default
 
         }
         String lower = title.toLowerCase();
+        if (lower.contains("clash") || lower.contains("4v4") || lower.contains("4 vs 4") || lower.contains("clash squad")) {
+            return MatchType.CLASH_SQUAD;
+        }
         if (lower.contains("duo")) {
             return MatchType.DUO;
         }
@@ -150,13 +169,14 @@ public class MatchService {
         existingMatch.setStatus(updatedMatch.getStatus());
         existingMatch.setSlots(updatedMatch.getSlots());
         existingMatch.setEntryFee(updatedMatch.getEntryFee());
-        existingMatch.setPrizePool(updatedMatch.getPrizePool());
+    existingMatch.setPrizePool(updatedMatch.getPrizePool());
         existingMatch.setScheduledAt(updatedMatch.getScheduledAt());
         existingMatch.setMapName(updatedMatch.getMapName());
-        existingMatch.setGameMode(updatedMatch.getGameMode());
+    existingMatch.setGameMode(updatedMatch.getGameMode());
         existingMatch.setRules(updatedMatch.getRules());
         existingMatch.setRoomId(updatedMatch.getRoomId());
         existingMatch.setRoomPassword(updatedMatch.getRoomPassword());
+    existingMatch.setRounds(updatedMatch.getRounds());
 
         Match saved = matchRepository.save(existingMatch);
 

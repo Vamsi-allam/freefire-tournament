@@ -154,6 +154,8 @@ public class RegistrationService {
                 2;
             case SQUAD ->
                 4;
+            case CLASH_SQUAD ->
+                4; // 4v4 team size
         };
 
         if (players.size() != expectedPlayerCount) {

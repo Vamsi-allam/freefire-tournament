@@ -285,6 +285,8 @@ const UserPage = () => {
         return "bg-green-500";
       case "squad":
         return "bg-purple-500";
+      case "clash_squad":
+        return "bg-orange-500";
       default:
         return "bg-gray-500";
     }

@@ -89,7 +89,8 @@ const AdminPage = () => {
     scheduleDateTime: '',
     mapName: 'Bermuda',
     gameMode: 'SOLO',
-    rules: defaultRules
+    rules: defaultRules,
+    rounds: 7
   });
 
   // Updated map list to match available map images/names requested
@@ -97,6 +98,7 @@ const AdminPage = () => {
 
   const syncType = (title) => {
     const lower = title.toLowerCase();
+    if (lower.includes('clash') || lower.includes('4v4') || lower.includes('4 vs 4')) return 'CLASH_SQUAD';
     if (lower.includes('duo')) return 'DUO';
     if (lower.includes('squad')) return 'SQUAD';
     return 'SOLO';
@@ -208,14 +210,14 @@ const AdminPage = () => {
 
   const computed = (() => {
     const type = form.matchType;
-    const slots = type === 'SOLO' ? 48 : type === 'DUO' ? 24 : 12;
-    const pool = form.entryFee * slots;
+    const slots = type === 'SOLO' ? 48 : type === 'DUO' ? 24 : (type === 'SQUAD' ? 12 : 2);
+    const pool = type === 'CLASH_SQUAD' ? Math.round(form.entryFee * slots * 0.85) : (form.entryFee * slots);
     return {
       slots,
       pool,
-      first: Math.round(pool * 0.40),
-      second: Math.round(pool * 0.30),
-      third: Math.round(pool * 0.20)
+      first: type === 'CLASH_SQUAD' ? pool : Math.round(pool * 0.40),
+      second: type === 'CLASH_SQUAD' ? 0 : Math.round(pool * 0.30),
+      third: type === 'CLASH_SQUAD' ? 0 : Math.round(pool * 0.20)
     };
   })();
 
@@ -237,7 +239,9 @@ const AdminPage = () => {
     e.preventDefault();
     setCreating(true); setError(null);
     try {
-      await createMatch(form);
+  const payload = { ...form };
+  if (payload.matchType !== 'CLASH_SQUAD') delete payload.rounds; else payload.rounds = Number(payload.rounds) || 7;
+  await createMatch(payload);
       await refreshLists();
       setActiveTab('scheduler');
     } catch (err) {
@@ -246,7 +250,7 @@ const AdminPage = () => {
   };
 
   const handleEdit = (match) => {
-    setEditingMatch({...match});
+  setEditingMatch({...match, rounds: Number(match.rounds) || 7});
     setShowEditModal(true);
   };
 
@@ -280,10 +284,15 @@ const AdminPage = () => {
 
   const handleSaveEdit = async () => {
     try {
-      
-      
+      const payload = { ...editingMatch };
+      if (String(payload.matchType).toUpperCase() === 'CLASH_SQUAD') {
+        payload.slots = 2;
+        payload.rounds = Number(payload.rounds) || 7;
+      } else {
+        delete payload.rounds;
+      }
       // Use the API utility function which handles auth properly
-      await updateMatch(editingMatch.id, editingMatch);
+      await updateMatch(editingMatch.id, payload);
       await refreshLists();
       setShowEditModal(false);
       setEditingMatch(null);
@@ -599,11 +608,12 @@ const AdminPage = () => {
             </div>
             <form className="ap-form" onSubmit={submit}>
               <div className="ap-grid">
-                <label className="ap-field">Title
+        <label className="ap-field">Title
                   <select name="title" value={form.title} onChange={onChange}>
                     <option>Free Fire Solo Battle</option>
                     <option>Free Fire Duo Battle</option>
                     <option>Free Fire Squad Battle</option>
+          <option>Free Fire Clash Squad (4v4)</option>
                   </select>
                 </label>
                 <label className="ap-field">Game
@@ -628,13 +638,23 @@ const AdminPage = () => {
                 <label className="ap-field">Game Mode
                   <input name="gameMode" value={form.gameMode} readOnly />
                 </label>
+                {form.matchType === 'CLASH_SQUAD' && (
+                  <label className="ap-field">Rounds
+                    <select name="rounds" value={form.rounds} onChange={(e)=> setForm(f=>({...f, rounds: Number(e.target.value)||7}))}>
+                      <option value={7}>Best of 7</option>
+                      <option value={13}>Best of 13</option>
+                    </select>
+                  </label>
+                )}
               </div>
               <div className="ap-prizes">
                 <div>Slots: <strong>{computed.slots}</strong></div>
-                <div>Total Pool: <strong>₹{computed.pool}</strong></div>
+                <div>Total Pool: <strong>₹{computed.pool}</strong>{form.matchType==='CLASH_SQUAD' && <span style={{marginLeft:6, opacity:.75}}>(85% winner takes all)</span>}</div>
                 <div>1st: ₹{computed.first}</div>
-                <div>2nd: ₹{computed.second}</div>
-                <div>3rd: ₹{computed.third}</div>
+                {form.matchType!=='CLASH_SQUAD' && (<>
+                  <div>2nd: ₹{computed.second}</div>
+                  <div>3rd: ₹{computed.third}</div>
+                </>)}
               </div>
               <label className="ap-field full">Rules
                 <textarea name="rules" rows={5} value={form.rules} onChange={onChange} />
@@ -1178,20 +1198,31 @@ const AdminPage = () => {
                     <label>Type</label>
                     <select
                       value={editingMatch.matchType}
-                      onChange={(e) => setEditingMatch({...editingMatch, matchType: e.target.value})}
+                      onChange={(e) => {
+                        const mt = e.target.value;
+                        setEditingMatch(prev => ({
+                          ...prev,
+                          matchType: mt,
+                          gameMode: mt,
+                          slots: mt === 'SOLO' ? 48 : mt === 'DUO' ? 24 : (mt === 'SQUAD' ? 12 : 2),
+                          rounds: mt === 'CLASH_SQUAD' ? (Number(prev.rounds) || 7) : undefined
+                        }));
+                      }}
                       className="ap-form-select"
                     >
                       <option value="SOLO">Solo</option>
                       <option value="DUO">Duo</option>
                       <option value="SQUAD">Squad</option>
+                      <option value="CLASH_SQUAD">Clash Squad (4v4)</option>
                     </select>
                   </div>
                   <div className="ap-form-group">
                     <label>Slots</label>
                     <input
                       type="number"
-                      value={editingMatch.slots}
+                      value={String(editingMatch.matchType).toUpperCase()==='CLASH_SQUAD' ? 2 : editingMatch.slots}
                       onChange={(e) => setEditingMatch({...editingMatch, slots: parseInt(e.target.value)})}
+                      readOnly={String(editingMatch.matchType).toUpperCase()==='CLASH_SQUAD'}
                       className="ap-form-input"
                     />
                   </div>
@@ -1217,6 +1248,20 @@ const AdminPage = () => {
                     />
                   </div>
                 </div>
+
+                {String(editingMatch.matchType).toUpperCase()==='CLASH_SQUAD' && (
+                  <div className="ap-form-group">
+                    <label>Rounds</label>
+                    <select
+                      value={Number(editingMatch.rounds) || 7}
+                      onChange={(e) => setEditingMatch({...editingMatch, rounds: Number(e.target.value) || 7})}
+                      className="ap-form-select"
+                    >
+                      <option value={7}>Best of 7</option>
+                      <option value={13}>Best of 13</option>
+                    </select>
+                  </div>
+                )}
 
                 <div className="ap-form-row">
                   <div className="ap-form-group">
