@@ -859,6 +859,38 @@
   font-weight: 700;
 }
 
+/* Completion notice styles */
+.completion-notice {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.08), rgba(34, 197, 94, 0.12));
+  border: 1px solid rgba(34, 197, 94, 0.25);
+  border-radius: 12px;
+  padding: 1.1rem;
+  margin-top: 0.75rem;
+  text-align: center;
+  backdrop-filter: blur(10px);
+  animation: fadeInUp 0.3s ease-out;
+}
+
+.completion-notice .detail-row {
+  justify-content: center;
+  margin-bottom: 0.6rem;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.completion-notice .detail-row:last-child { margin-bottom: 0; }
+.completion-notice .detail-row span:first-child {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.completed-text { color: #86efac; font-weight: 700; }
+.credit-text { color: #22c55e; font-weight: 700; }
+.credit-pending-text { color: #fbbf24; font-weight: 700; }
+.no-prize-text { color: rgba(255,255,255,.8); font-weight: 600; }
+
 .text-yellow-500 { color: #fbbf24; }
 .text-gray-400 { color: #9ca3af; }
 .text-amber-600 { color: #d97706; }

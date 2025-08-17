@@ -911,6 +911,29 @@ const UserPage = () => {
                                 <span>Prize Won:</span>
                                 <span className="prize-value">₹{registration.result.prize}</span>
                               </div>
+
+                              {/* Completion status message */}
+                              <div className="completion-notice">
+                                <div className="detail-row">
+                                  <span>Status:</span>
+                                  <span className="completed-text">🏁 Match completed</span>
+                                </div>
+                                {Number(registration.result.prize || 0) > 0 ? (
+                                  <div className="detail-row">
+                                    <span>Prize Status:</span>
+                                    {registration.result.prizeCredited === true ? (
+                                      <span className="credit-text">✅ ₹{registration.result.prize} credited to wallet</span>
+                                    ) : (
+                                      <span className="credit-pending-text">⏳ ₹{registration.result.prize} pending credit (awaiting verification)</span>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <div className="detail-row">
+                                    <span>Result:</span>
+                                    <span className="no-prize-text">Better luck next time</span>
+                                  </div>
+                                )}
+                              </div>
                             </>
                           )}
                         </div>
