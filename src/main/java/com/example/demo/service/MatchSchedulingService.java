@@ -3,8 +3,11 @@ package com.example.demo.service;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,26 +31,36 @@ public class MatchSchedulingService {
     private final RegistrationRepository registrationRepository;
     private final WalletService walletService;
 
+    @Value("${app.timezone:Asia/Kolkata}")
+    private String appTimezone;
+
     // Runs every minute
     @Scheduled(fixedRate = 60_000)
     @Transactional
     public void enforceMinimumsAndRefunds() {
-        LocalDateTime now = LocalDateTime.now();
-        List<Match> upcoming = matchRepository.findAll();
-        for (Match match : upcoming) {
-            if (match.getStatus() == MatchStatus.CANCELLED || match.getStatus() == MatchStatus.COMPLETED) {
+        ZoneId zone = ZoneId.of(appTimezone);
+        ZonedDateTime nowZ = ZonedDateTime.now(zone);
+        List<Match> all = matchRepository.findAll();
+        for (Match match : all) {
+            // Only consider scheduled, OPEN matches
+            if (match.getStatus() == MatchStatus.CANCELLED || match.getStatus() == MatchStatus.COMPLETED || match.getStatus() != MatchStatus.OPEN) {
+                continue;
+            }
+            LocalDateTime scheduledAt = match.getScheduledAt();
+            if (scheduledAt == null) {
                 continue;
             }
 
-            long minutesUntil = Duration.between(now, match.getScheduledAt()).toMinutes();
-            if (minutesUntil > 5) {
-                continue; // Only act within 5 minutes window
+            ZonedDateTime schedZ = scheduledAt.atZone(zone);
+            long minutesUntil = Duration.between(nowZ, schedZ).toMinutes();
 
+            if (minutesUntil > 5) {
+                continue; // Only act within 5-minute window before start
             }
             if (minutesUntil < -10) {
-                continue; // Skip long past matches
+                continue; // Skip matches long past start time
             }
-            // Count confirmed registrations
+
             int confirmed = registrationRepository.countConfirmedRegistrationsByMatchId(match.getId());
             int required = requiredTeams(match.getMatchType());
 
@@ -83,12 +96,9 @@ public class MatchSchedulingService {
     // Keep in sync with MatchController.requiredTeams
     private int requiredTeams(MatchType type) {
         return switch (type) {
-            case SOLO ->
-                25;   // minimum solo players
-            case DUO ->
-                13;    // minimum duo teams
-            case SQUAD ->
-                7;   // minimum squad teams
+            case SOLO -> 25;   // minimum solo players
+            case DUO  -> 13;   // minimum duo teams
+            case SQUAD-> 7;    // minimum squad teams
         };
     }
 }

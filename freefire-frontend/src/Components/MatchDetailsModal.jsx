@@ -108,11 +108,11 @@ const MatchDetailsModal = ({ isOpen, onClose, match, userRegistrations = [], par
       matchTime: matchTime.toISOString(),
       now: now.toISOString(),
       minutesUntilMatch,
-      shouldShow: minutesUntilMatch <= 5
+      shouldShow: minutesUntilMatch <= 4
     });
     
     // Show room details 5 minutes before match or if match has already started
-    return minutesUntilMatch <= 5;
+    return minutesUntilMatch <= 4;
   };
 
   // Get time until room details are available (threshold: 5 minutes before start)
