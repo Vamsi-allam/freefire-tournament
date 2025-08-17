@@ -174,7 +174,6 @@ const UserPage = () => {
       });
       if (response.ok) {
         const data = await response.json();
-        console.log("Fetched matches with status:", data);
         setMatches(data);
       }
     } catch (error) {
@@ -186,7 +185,6 @@ const UserPage = () => {
 
   const fetchUserRegistrations = async () => {
     try {
-    console.log("Attempting to fetch user registrations, token exists:", !!sessionStorage.getItem("token"));
       const data = await getUserRegistrations();
       setUserRegistrations(data);
     } catch (error) {
@@ -207,16 +205,13 @@ const UserPage = () => {
   // Debug function to help fix authentication issues
   const checkAuthStatus = () => {
   const token = sessionStorage.getItem("token");
-    console.log("Auth debug - Token exists:", !!token);
     if (token) {
-      console.log("Auth debug - Token preview:", token.substring(0, 15) + "...");
       
       // Test a wallet API call which should work
   fetch(`${API_BASE}/api/wallet/balance`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       .then(res => {
-        console.log("Auth debug - Wallet balance API response:", res.status, res.ok);
         return res.json();
       })
       .then(data => console.log("Auth debug - Wallet data:", data))
@@ -264,7 +259,6 @@ const UserPage = () => {
         setShowProfileEditModal(false);
         
         // Show success message
-        console.log("Profile updated successfully");
       } else {
         const errorData = await response.json();
         console.error("Failed to update profile:", errorData);
@@ -367,7 +361,6 @@ const UserPage = () => {
     // Refresh matches to update available slots
     fetchMatches();
     // You could also show a success message here
-    console.log('Registration successful:', registrationData);
   };
 
   // Filter registrations by status
@@ -487,12 +480,7 @@ const UserPage = () => {
     'solara': SolaraImg
   }), []);
   
-  console.log("All matches:", matches);
-  console.log("User registrations:", userRegistrations);
-  console.log("Available matches:", availableMatches);
-  console.log("Upcoming matches:", upcomingMatches);
-  console.log("User data avatar:", userData?.avatar);
-  console.log("SessionStorage avatar:", sessionStorage.getItem('userAvatar'));
+  
 
   return (
     <div className="ap-page user-page">
@@ -535,7 +523,6 @@ const UserPage = () => {
                         alt="Profile" 
                         className="avatar-image" 
                         onError={(e) => {
-                          console.log("Avatar failed to load:", userData.avatar);
                           e.target.style.display = 'none';
                           e.target.nextSibling.style.display = 'flex';
                         }}

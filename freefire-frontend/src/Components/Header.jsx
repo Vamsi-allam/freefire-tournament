@@ -39,11 +39,9 @@ const Header = () => {
 						) : (
 							<div style={{ display: 'flex', gap: '0.75rem' }}>
 								<button onClick={() => {
-									console.log('Sign In button clicked');
 									window.dispatchEvent(new CustomEvent('open-signin-modal'));
 								}} className="login-btn">Sign In</button>
 								<button onClick={() => {
-									console.log('Sign Up button clicked');
 									window.dispatchEvent(new CustomEvent('open-signup-modal'));
 								}} className="login-btn">Sign Up</button>
 							</div>

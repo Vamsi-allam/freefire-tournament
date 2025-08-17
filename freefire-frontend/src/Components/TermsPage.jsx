@@ -13,12 +13,10 @@ const TermsPage = () => {
 	// Listen for header sign-in modal events
 	useEffect(() => {
 		const openSignIn = () => {
-			console.log('Sign In event received');
 			setModalTitle('Sign In');
 			setShowSignInModal(true);
 		};
 		const openSignUp = () => {
-			console.log('Sign Up event received');
 			setModalTitle('Sign Up');
 			setShowSignInModal(true);
 		};

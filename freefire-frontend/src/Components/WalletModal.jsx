@@ -90,7 +90,6 @@ const WalletModal = ({ isOpen, onClose }) => {
   const fetchWalletData = async () => {
     try {
   const token = sessionStorage.getItem("token");
-      console.log("Token found:", !!token);
       
       if (!token) {
         console.error("No token found");
@@ -363,7 +362,6 @@ const WalletModal = ({ isOpen, onClose }) => {
   await fetchWithdrawals(); // Ensure pending withdrawal shows up
       
       // Show success message
-      console.log('Withdrawal completed successfully:', transactionResult);
       
     } catch (error) {
       console.error('Error updating wallet data after withdrawal:', error);

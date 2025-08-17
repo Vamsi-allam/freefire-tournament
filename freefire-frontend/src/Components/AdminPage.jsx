@@ -280,9 +280,7 @@ const AdminPage = () => {
 
   const handleSaveEdit = async () => {
     try {
-      console.log('UserData:', userData);
-      console.log('Token from userState:', userData?.token);
-  console.log('Token from sessionStorage:', sessionStorage.getItem('token'));
+      
       
       // Use the API utility function which handles auth properly
       await updateMatch(editingMatch.id, editingMatch);
@@ -356,7 +354,6 @@ const AdminPage = () => {
         setCredentialsSaved(prev => ({ ...prev, [matchId]: false }));
       }, 2000);
       
-      console.log('Credentials saved successfully');
     } catch (error) {
       console.error('Error saving credentials:', error);
       openSnack('Failed to save credentials', 'error');

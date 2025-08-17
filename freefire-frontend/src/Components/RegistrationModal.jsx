@@ -83,7 +83,6 @@ const RegistrationModal = ({ isOpen, onClose, match, onRegistrationSuccess }) =>
         // If it's an insufficient balance error, we could offer to open wallet modal
         if (errorMessage.includes('Insufficient wallet balance')) {
           // The detailed error message from backend will be shown
-          console.log('Insufficient balance error:', errorMessage);
         }
       }
     } catch (err) {
