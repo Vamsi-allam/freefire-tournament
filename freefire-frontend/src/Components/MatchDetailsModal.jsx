@@ -74,26 +74,12 @@ const MatchDetailsModal = ({ isOpen, onClose, match, userRegistrations = [], par
       const isRegisteredForThisMatch = matchId === match.id && reg.status === 'CONFIRMED';
       
       // Debug logging
-      console.log('Checking registration:', {
-        regMatchId: matchId,
-        currentMatchId: match.id,
-        status: reg.status,
-        isRegistered: isRegisteredForThisMatch
-      });
+      
       
       return isRegisteredForThisMatch;
     }
   );
 
-  console.log('User registration status:', {
-    isAuthenticated,
-    isUserRegistered,
-    matchId: match.id,
-    userRegistrations: userRegistrations.length,
-    hasRoomId: !!match.roomId,
-    hasRoomPassword: !!match.roomPassword,
-    matchObject: match
-  });
 
   // Check if room details should be shown (5 minutes before match start)
   const shouldShowRoomDetails = () => {
@@ -105,12 +91,6 @@ const MatchDetailsModal = ({ isOpen, onClose, match, userRegistrations = [], par
     const timeDifference = matchTime.getTime() - now.getTime();
     const minutesUntilMatch = Math.floor(timeDifference / (1000 * 60));
     
-    console.log('Room details timing:', {
-      matchTime: matchTime.toISOString(),
-      now: now.toISOString(),
-      minutesUntilMatch,
-      shouldShow: minutesUntilMatch <= 4
-    });
     
     // Show room details 5 minutes before match or if match has already started
     return minutesUntilMatch <= 4;
