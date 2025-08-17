@@ -4,7 +4,7 @@ import './MatchDetailsModal.css';
 import { getPrizeDistribution } from '../utils/api';
 
 const MatchDetailsModal = ({ isOpen, onClose, match, userRegistrations = [], participants = [] }) => {
-  const { userData, isAuthenticated } = useSelector((state) => state.user);
+  const { userData, isAuthenticated, role } = useSelector((state) => state.user);
 
   // Hooks must not be conditional; declare them before any early return
   const [prizeInfo, setPrizeInfo] = useState(null);
@@ -12,7 +12,8 @@ const MatchDetailsModal = ({ isOpen, onClose, match, userRegistrations = [], par
     let cancelled = false;
     const load = async () => {
       try {
-        if (!match?.id) return;
+        // Only admins should fetch prize distribution from the secure endpoint
+        if (!match?.id || role !== 'ADMIN') return;
         const data = await getPrizeDistribution(match.id);
         if (!cancelled) setPrizeInfo(data);
       } catch (e) {
@@ -21,7 +22,7 @@ const MatchDetailsModal = ({ isOpen, onClose, match, userRegistrations = [], par
     };
     load();
     return () => { cancelled = true; };
-  }, [match?.id]);
+  }, [match?.id, role]);
 
   // Now it's safe to exit early without changing hooks order
   if (!isOpen || !match) return null;

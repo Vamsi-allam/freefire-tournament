@@ -96,9 +96,12 @@ public class MatchSchedulingService {
     // Keep in sync with MatchController.requiredTeams
     private int requiredTeams(MatchType type) {
         return switch (type) {
-            case SOLO -> 25;   // minimum solo players
-            case DUO  -> 13;   // minimum duo teams
-            case SQUAD-> 7;    // minimum squad teams
+            case SOLO ->
+                25;   // minimum solo players
+            case DUO ->
+                13;   // minimum duo teams
+            case SQUAD ->
+                7;    // minimum squad teams
         };
     }
 }
