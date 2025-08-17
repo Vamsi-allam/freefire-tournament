@@ -31,16 +31,21 @@ const AddMoneyModal = ({ isOpen, onClose, onAddMoney }) => {
   });
   const [submittingUtr, setSubmittingUtr] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState('');
-  // Snackbar state
+  // Snackbar state (used for non-copy messages)
   const [snack, setSnack] = useState({ open: false, message: '', severity: 'info' });
   const openSnack = (message, severity = 'info') => setSnack({ open: true, message, severity });
   const closeSnack = () => setSnack(s => ({ ...s, open: false }));
+
+  // Minimal bottom-center toast specifically for copy feedback
+  const [copyToast, setCopyToast] = useState(false);
 
   // Copy helper
   const handleCopy = async (text) => {
     try {
       await navigator.clipboard.writeText(String(text || ''));
-      openSnack('Copied to clipboard', 'success');
+      // Show unobtrusive bottom-center toast like on mobile
+      setCopyToast(true);
+      setTimeout(() => setCopyToast(false), 1200);
     } catch {
       openSnack('Failed to copy', 'error');
     }
@@ -551,6 +556,11 @@ const AddMoneyModal = ({ isOpen, onClose, onAddMoney }) => {
           )}
         </div>
       </div>
+      {/* Copy toast (bottom-center, dark background, white text) */}
+      {copyToast && (
+        <div className="bottom-copy-toast" role="status" aria-live="polite">Copied</div>
+      )}
+
       <Snackbar
         open={snack.open}
         autoHideDuration={3500}

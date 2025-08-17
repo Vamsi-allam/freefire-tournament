@@ -499,3 +499,26 @@
   .upi-apps { grid-template-columns: repeat(3, 1fr); }
   .upi-app-btn.large { grid-column: span 3; }
 }
+
+/* Bottom-center copy toast */
+.bottom-copy-toast{
+  position: fixed;
+  left: 50%;
+  bottom: 8vh;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.85);
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 14px;
+  font-weight: 700;
+  font-size: 0.925rem;
+  letter-spacing: .2px;
+  z-index: 1100; /* above modal */
+  box-shadow: 0 6px 20px rgba(0,0,0,.35);
+  animation: copytoast-in .15s ease-out;
+}
+
+@keyframes copytoast-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(6px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
