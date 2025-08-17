@@ -98,21 +98,7 @@ function Boot() {
   return <App />;
 }
 
-// Auto-fallback to HashRouter if the user opens a deep link (non-root path)
-// This prevents 404s on static hosts/CDNs that don't rewrite to index.html.
-const deepLinked = typeof window !== 'undefined' && window.location.pathname && window.location.pathname !== '/';
-const useHash = (import.meta.env.VITE_USE_HASH_ROUTER === 'true') || deepLinked;
-
-// If using HashRouter due to deep link, normalize URL to /#/path so routes match
-try {
-  if (useHash && typeof window !== 'undefined') {
-    const { pathname, search, hash } = window.location;
-    if (pathname !== '/' && !hash) {
-      const newUrl = '/#' + pathname + (search || '');
-      window.history.replaceState(null, '', newUrl);
-    }
-  }
-} catch {}
+const useHash = import.meta.env.VITE_USE_HASH_ROUTER === 'true';
 const Router = useHash ? HashRouter : BrowserRouter;
 
 const app = (
