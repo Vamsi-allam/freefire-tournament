@@ -260,7 +260,7 @@ const AdminPage = () => {
     try {
       console.log('UserData:', userData);
       console.log('Token from userState:', userData?.token);
-      console.log('Token from localStorage:', localStorage.getItem('token'));
+  console.log('Token from sessionStorage:', sessionStorage.getItem('token'));
       
       // Use the API utility function which handles auth properly
       await updateMatch(editingMatch.id, editingMatch);
@@ -371,7 +371,7 @@ const AdminPage = () => {
     try {
   const response = await fetch(`${API_BASE}/api/upi/admin/pending`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token') || localStorage.getItem('supabaseAccessToken')}`
+          'Authorization': `Bearer ${sessionStorage.getItem('token') || sessionStorage.getItem('supabaseAccessToken')}`
         }
       });
       
@@ -397,7 +397,7 @@ const AdminPage = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token') || localStorage.getItem('supabaseAccessToken')}`
+          'Authorization': `Bearer ${sessionStorage.getItem('token') || sessionStorage.getItem('supabaseAccessToken')}`
         },
         body: JSON.stringify({
           paymentId,

@@ -30,7 +30,7 @@ const UserPage = () => {
   // Default tab should be 'available' when user logs in; restore from storage on refresh
   const [activeTab, setActiveTab] = useState(() => {
     try {
-      return localStorage.getItem('ui.user.activeTab') || 'available';
+      return sessionStorage.getItem('ui.user.activeTab') || 'available';
     } catch { return 'available'; }
   });
   const [walletBalance, setWalletBalance] = useState(0);
@@ -41,7 +41,7 @@ const UserPage = () => {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedDetailsMatch, setSelectedDetailsMatch] = useState(null);
   const [showWalletModal, setShowWalletModal] = useState(() => {
-    try { return localStorage.getItem('ui.user.showWalletModal') === 'true'; }
+    try { return sessionStorage.getItem('ui.user.showWalletModal') === 'true'; }
     catch { return false; }
   });
   const [showMobileTabs, setShowMobileTabs] = useState(false);
@@ -62,10 +62,10 @@ const UserPage = () => {
 
   // Persist UI state for refresh resilience
   useEffect(() => {
-    try { localStorage.setItem('ui.user.activeTab', activeTab); } catch {}
+  try { sessionStorage.setItem('ui.user.activeTab', activeTab); } catch {}
   }, [activeTab]);
   useEffect(() => {
-    try { localStorage.setItem('ui.user.showWalletModal', String(showWalletModal)); } catch {}
+  try { sessionStorage.setItem('ui.user.showWalletModal', String(showWalletModal)); } catch {}
   }, [showWalletModal]);
 
   const formatCountdown = (ms) => {
@@ -82,7 +82,7 @@ const UserPage = () => {
 
   const fetchWalletBalance = async () => {
     try {
-      const token = localStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
   const response = await fetch(`${API_BASE}/api/wallet/balance`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -100,7 +100,7 @@ const UserPage = () => {
 
   const fetchUserProfile = async () => {
     try {
-      const token = localStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
   const response = await fetch(`${API_BASE}/api/profile/check-completion`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -144,7 +144,7 @@ const UserPage = () => {
 
   const fetchMatches = async () => {
     try {
-      const token = localStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
   const response = await fetch(`${API_BASE}/api/matches/with-status`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -164,7 +164,7 @@ const UserPage = () => {
 
   const fetchUserRegistrations = async () => {
     try {
-      console.log("Attempting to fetch user registrations, token exists:", !!localStorage.getItem("token"));
+    console.log("Attempting to fetch user registrations, token exists:", !!sessionStorage.getItem("token"));
       const data = await getUserRegistrations();
       setUserRegistrations(data);
     } catch (error) {
@@ -184,7 +184,7 @@ const UserPage = () => {
 
   // Debug function to help fix authentication issues
   const checkAuthStatus = () => {
-    const token = localStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
     console.log("Auth debug - Token exists:", !!token);
     if (token) {
       console.log("Auth debug - Token preview:", token.substring(0, 15) + "...");
@@ -212,7 +212,7 @@ const UserPage = () => {
 
   const handleSaveProfile = async (profileData) => {
     try {
-      const token = localStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
   const response = await fetch(`${API_BASE}/api/profile/complete`, {
         method: "POST",
         headers: {
@@ -323,7 +323,7 @@ const UserPage = () => {
     const matchWithCredentials = { ...match, roomId: match.roomId || match.room_id, roomPassword: match.roomPassword || match.room_password };
     setSelectedDetailsMatch(matchWithCredentials);
     try {
-      const token = localStorage.getItem('token');
+  const token = sessionStorage.getItem('token');
   const res = await fetch(`${API_BASE}/api/registrations/match/${match.id}`, { headers: { Authorization: `Bearer ${token}` } });
       if (res.ok) {
         const data = await res.json();
@@ -470,7 +470,7 @@ const UserPage = () => {
   console.log("Available matches:", availableMatches);
   console.log("Upcoming matches:", upcomingMatches);
   console.log("User data avatar:", userData?.avatar);
-  console.log("LocalStorage avatar:", localStorage.getItem('userAvatar'));
+  console.log("SessionStorage avatar:", sessionStorage.getItem('userAvatar'));
 
   return (
     <div className="ap-page user-page">
@@ -1168,8 +1168,8 @@ const UserPage = () => {
     <SupportModal
       isOpen={showSupportModal}
       onClose={() => setShowSupportModal(false)}
-      defaultEmail={userData?.email || localStorage.getItem('userEmail') || ''}
-      defaultPhone={userData?.phone || localStorage.getItem('userPhone') || ''}
+      defaultEmail={userData?.email || sessionStorage.getItem('userEmail') || ''}
+          defaultPhone={userData?.phone || sessionStorage.getItem('userPhone') || ''}
     />
     </div>
   );

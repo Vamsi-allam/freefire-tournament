@@ -46,14 +46,14 @@ const Homepage = () => {
           
           if (response.ok) {
             const data = await response.json();
-            // Store the JWT token from backend
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('userRole', data.role);
-            localStorage.setItem('userName', data.name);
-            localStorage.setItem('userEmail', data.email);
-            if (data.phone) localStorage.setItem('userPhone', data.phone);
-            if (data.gameId) localStorage.setItem('userGameId', data.gameId);
-            if (data.avatar) localStorage.setItem('userAvatar', data.avatar);
+            // Store the JWT token from backend in sessionStorage
+            sessionStorage.setItem('token', data.token);
+            sessionStorage.setItem('userRole', data.role);
+            sessionStorage.setItem('userName', data.name);
+            sessionStorage.setItem('userEmail', data.email);
+            if (data.phone) sessionStorage.setItem('userPhone', data.phone);
+            if (data.gameId) sessionStorage.setItem('userGameId', data.gameId);
+            if (data.avatar) sessionStorage.setItem('userAvatar', data.avatar);
             
             dispatch(setSupabaseSession({ session, role: data.role }));
             // Navigate based on role from backend
@@ -207,8 +207,8 @@ const Homepage = () => {
       <SupportModal
         isOpen={showSupport}
         onClose={() => setShowSupport(false)}
-        defaultEmail={userData?.email || localStorage.getItem('userEmail') || ''}
-        defaultPhone={userData?.phone || localStorage.getItem('userPhone') || ''}
+        defaultEmail={userData?.email || sessionStorage.getItem('userEmail') || ''}
+        defaultPhone={userData?.phone || sessionStorage.getItem('userPhone') || ''}
       />
     </div>
   );

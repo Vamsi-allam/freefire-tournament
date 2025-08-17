@@ -31,7 +31,7 @@ function App() {
   const navigate = useNavigate();
   const isAuthenticated = useSelector((state) => state.user.isAuthenticated);
 
-  // Initialize user data from localStorage on app start
+  // Initialize user data from sessionStorage on app start
   useEffect(() => {
     dispatch(initializeFromStorage());
   }, [dispatch]);
@@ -40,14 +40,14 @@ function App() {
   useEffect(() => {
     try {
       const path = location.pathname + (location.search || '') + (location.hash || '');
-      localStorage.setItem('ui.lastRoute', path);
+      sessionStorage.setItem('ui.lastRoute', path);
     } catch {}
   }, [location.pathname, location.search, location.hash]);
 
   // Restore last route on first load (e.g., after refresh) if needed
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('ui.lastRoute');
+      const saved = sessionStorage.getItem('ui.lastRoute');
       // Only auto-restore if user is authenticated and we're on home
       if (isAuthenticated && saved && saved !== '/' && location.pathname === '/') {
         navigate(saved, { replace: true });

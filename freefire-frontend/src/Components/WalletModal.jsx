@@ -21,10 +21,10 @@ const WalletModal = ({ isOpen, onClose }) => {
   });
   
   const [activeSection, setActiveSection] = useState(() => {
-    try { return localStorage.getItem('ui.wallet.activeSection') || 'history'; } catch { return 'history'; }
+    try { return sessionStorage.getItem('ui.wallet.activeSection') || 'history'; } catch { return 'history'; }
   }); // 'history' or 'analytics'
   const [transactionFilter, setTransactionFilter] = useState(() => {
-    try { return localStorage.getItem('ui.wallet.transactionFilter') || 'all'; } catch { return 'all'; }
+    try { return sessionStorage.getItem('ui.wallet.transactionFilter') || 'all'; } catch { return 'all'; }
   }); // 'all', 'added', 'spent'
   const [transactions, setTransactions] = useState([]);
   const [upiPayments, setUpiPayments] = useState([]); // pending/approved/rejected
@@ -32,10 +32,10 @@ const WalletModal = ({ isOpen, onClose }) => {
   const [registrations, setRegistrations] = useState([]); // my match registrations to determine completion
   const [isLoading, setIsLoading] = useState(false);
   const [showAddMoneyModal, setShowAddMoneyModal] = useState(() => {
-    try { return localStorage.getItem('ui.wallet.showAddMoneyModal') === 'true'; } catch { return false; }
+    try { return sessionStorage.getItem('ui.wallet.showAddMoneyModal') === 'true'; } catch { return false; }
   });
   const [showWithdrawModal, setShowWithdrawModal] = useState(() => {
-    try { return localStorage.getItem('ui.wallet.showWithdrawModal') === 'true'; } catch { return false; }
+    try { return sessionStorage.getItem('ui.wallet.showWithdrawModal') === 'true'; } catch { return false; }
   });
   const [showProfileCompletion, setShowProfileCompletion] = useState(false);
   const [profileCompleted, setProfileCompleted] = useState(false);
@@ -75,21 +75,21 @@ const WalletModal = ({ isOpen, onClose }) => {
 
   // Persist UI state for refresh continuity
   useEffect(() => {
-    try { localStorage.setItem('ui.wallet.activeSection', activeSection); } catch {}
+  try { sessionStorage.setItem('ui.wallet.activeSection', activeSection); } catch {}
   }, [activeSection]);
   useEffect(() => {
-    try { localStorage.setItem('ui.wallet.transactionFilter', transactionFilter); } catch {}
+  try { sessionStorage.setItem('ui.wallet.transactionFilter', transactionFilter); } catch {}
   }, [transactionFilter]);
   useEffect(() => {
-    try { localStorage.setItem('ui.wallet.showAddMoneyModal', String(showAddMoneyModal)); } catch {}
+  try { sessionStorage.setItem('ui.wallet.showAddMoneyModal', String(showAddMoneyModal)); } catch {}
   }, [showAddMoneyModal]);
   useEffect(() => {
-    try { localStorage.setItem('ui.wallet.showWithdrawModal', String(showWithdrawModal)); } catch {}
+  try { sessionStorage.setItem('ui.wallet.showWithdrawModal', String(showWithdrawModal)); } catch {}
   }, [showWithdrawModal]);
 
   const fetchWalletData = async () => {
     try {
-      const token = localStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
       console.log("Token found:", !!token);
       
       if (!token) {
@@ -110,7 +110,7 @@ const WalletModal = ({ isOpen, onClose }) => {
   const fetchTransactions = async () => {
     try {
       setIsLoading(true);
-      const token = localStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
       
       if (!token) {
         console.error("No token found for transactions");
@@ -257,7 +257,7 @@ const WalletModal = ({ isOpen, onClose }) => {
 
   const fetchUpiPayments = async () => {
     try {
-      const token = localStorage.getItem('token');
+  const token = sessionStorage.getItem('token');
       if (!token) { setUpiPayments([]); return; }
       const data = await listMyUpiPayments();
       setUpiPayments(Array.isArray(data) ? data : []);
@@ -269,7 +269,7 @@ const WalletModal = ({ isOpen, onClose }) => {
 
   const fetchWithdrawals = async () => {
     try {
-      const token = localStorage.getItem('token');
+  const token = sessionStorage.getItem('token');
       if (!token) { setWithdrawals([]); return; }
       const data = await listMyWithdrawals();
       setWithdrawals(Array.isArray(data) ? data : []);
@@ -281,7 +281,7 @@ const WalletModal = ({ isOpen, onClose }) => {
 
   const fetchRegistrations = async () => {
     try {
-      const token = localStorage.getItem('token');
+  const token = sessionStorage.getItem('token');
       if (!token) { setRegistrations([]); return; }
       const data = await getUserRegistrations();
       setRegistrations(Array.isArray(data) ? data : []);
@@ -316,7 +316,7 @@ const WalletModal = ({ isOpen, onClose }) => {
 
   const handleProfileCompletion = async (profileData) => {
     try {
-      const token = localStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
   const response = await fetch(`${API_BASE}/api/profile/complete`, {
         method: 'POST',
         headers: {
@@ -329,10 +329,10 @@ const WalletModal = ({ isOpen, onClose }) => {
       if (response.ok) {
         const updatedUser = await response.json();
         
-        // Update local storage with new user data
-        localStorage.setItem('userName', profileData.displayName);
-        localStorage.setItem('userPhone', profileData.phoneNumber);
-        localStorage.setItem('userGameId', profileData.gameId);
+  // Update session storage with new user data
+  sessionStorage.setItem('userName', profileData.displayName);
+  sessionStorage.setItem('userPhone', profileData.phoneNumber);
+  sessionStorage.setItem('userGameId', profileData.gameId);
         
         // Update Redux store with new profile data
         dispatch(updateProfile(profileData));

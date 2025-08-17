@@ -6,23 +6,23 @@ import { Snackbar, Alert } from '@mui/material';
 
 const AddMoneyModal = ({ isOpen, onClose, onAddMoney }) => {
   const [amount, setAmount] = useState(() => {
-    try { return localStorage.getItem('ui.addMoney.amount') || ''; } catch { return ''; }
+    try { return sessionStorage.getItem('ui.addMoney.amount') || ''; } catch { return ''; }
   });
   const [selectedMethod, setSelectedMethod] = useState(() => {
-    try { return localStorage.getItem('ui.addMoney.method') || 'upi'; } catch { return 'upi'; }
+    try { return sessionStorage.getItem('ui.addMoney.method') || 'upi'; } catch { return 'upi'; }
   });
   const [isLoading, setIsLoading] = useState(false);
   const [showUpiForm, setShowUpiForm] = useState(() => {
-    try { return localStorage.getItem('ui.addMoney.showUpiForm') === 'true'; } catch { return false; }
+    try { return sessionStorage.getItem('ui.addMoney.showUpiForm') === 'true'; } catch { return false; }
   });
   const [upiPaymentData, setUpiPaymentData] = useState(() => {
     try {
-      const raw = localStorage.getItem('ui.addMoney.upiPaymentData');
+      const raw = sessionStorage.getItem('ui.addMoney.upiPaymentData');
       return raw ? JSON.parse(raw) : null;
     } catch { return null; }
   });
   const [utrNumber, setUtrNumber] = useState(() => {
-    try { return localStorage.getItem('ui.addMoney.utr') || ''; } catch { return ''; }
+    try { return sessionStorage.getItem('ui.addMoney.utr') || ''; } catch { return ''; }
   });
   const [submittingUtr, setSubmittingUtr] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState('');
@@ -50,11 +50,11 @@ const AddMoneyModal = ({ isOpen, onClose, onAddMoney }) => {
       setSubmittingUtr(false);
       setQrCodeUrl('');
       try {
-        localStorage.removeItem('ui.addMoney.amount');
-        localStorage.removeItem('ui.addMoney.method');
-        localStorage.removeItem('ui.addMoney.showUpiForm');
-        localStorage.removeItem('ui.addMoney.upiPaymentData');
-        localStorage.removeItem('ui.addMoney.utr');
+        sessionStorage.removeItem('ui.addMoney.amount');
+        sessionStorage.removeItem('ui.addMoney.method');
+        sessionStorage.removeItem('ui.addMoney.showUpiForm');
+        sessionStorage.removeItem('ui.addMoney.upiPaymentData');
+        sessionStorage.removeItem('ui.addMoney.utr');
       } catch {}
     }
   }, [isOpen]);
@@ -81,23 +81,23 @@ const AddMoneyModal = ({ isOpen, onClose, onAddMoney }) => {
 
   // Persist progress for refresh-resume
   useEffect(() => {
-    try { localStorage.setItem('ui.addMoney.amount', amount); } catch {}
+    try { sessionStorage.setItem('ui.addMoney.amount', amount); } catch {}
   }, [amount]);
   useEffect(() => {
-    try { localStorage.setItem('ui.addMoney.method', selectedMethod); } catch {}
+    try { sessionStorage.setItem('ui.addMoney.method', selectedMethod); } catch {}
   }, [selectedMethod]);
   useEffect(() => {
-    try { localStorage.setItem('ui.addMoney.showUpiForm', String(showUpiForm)); } catch {}
+    try { sessionStorage.setItem('ui.addMoney.showUpiForm', String(showUpiForm)); } catch {}
   }, [showUpiForm]);
   useEffect(() => {
     try {
       if (upiPaymentData) {
-        localStorage.setItem('ui.addMoney.upiPaymentData', JSON.stringify(upiPaymentData));
+        sessionStorage.setItem('ui.addMoney.upiPaymentData', JSON.stringify(upiPaymentData));
       }
     } catch {}
   }, [upiPaymentData]);
   useEffect(() => {
-    try { localStorage.setItem('ui.addMoney.utr', utrNumber); } catch {}
+    try { sessionStorage.setItem('ui.addMoney.utr', utrNumber); } catch {}
   }, [utrNumber]);
 
   // Build a UPI deeplink locally (fallback when backend isn't available)

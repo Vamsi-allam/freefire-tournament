@@ -13,9 +13,9 @@ function handleUnauthorized(res) {
 const API_BASE = import.meta.env.VITE_API_BASE_URL || ""; // keep empty for same-origin/proxy
 
 function authHeaders() {
-	// Check both localStorage and see if token exists
-	const token = localStorage.getItem('token');
-	console.log('Token from localStorage:', token ? 'Token exists' : 'No token found');
+	// Read token from sessionStorage
+	const token = sessionStorage.getItem('token');
+	console.log('Token from sessionStorage:', token ? 'Token exists' : 'No token found');
 	return token ? { 'Authorization': `Bearer ${token}` } : {};
 }
 

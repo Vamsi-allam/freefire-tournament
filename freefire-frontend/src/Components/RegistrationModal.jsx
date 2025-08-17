@@ -57,7 +57,7 @@ const RegistrationModal = ({ isOpen, onClose, match, onRegistrationSuccess }) =>
     setError(null);
 
     try {
-      const token = localStorage.getItem('token');
+  const token = sessionStorage.getItem('token');
   const response = await fetch(`${API_BASE}/api/registrations`, {
         method: 'POST',
         headers: {

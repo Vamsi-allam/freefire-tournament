@@ -2,16 +2,16 @@ import { createSlice } from '@reduxjs/toolkit';
  
 const initialState = {
   userData: {
-    name: localStorage.getItem('userName') || null,
-    email: localStorage.getItem('userEmail') || null,
-    phone: localStorage.getItem('userPhone') || null,
-    gameId: localStorage.getItem('userGameId') || null,
-    role: localStorage.getItem('userRole') || null,
-    avatar: localStorage.getItem('userAvatar') || null
+    name: sessionStorage.getItem('userName') || null,
+    email: sessionStorage.getItem('userEmail') || null,
+    phone: sessionStorage.getItem('userPhone') || null,
+    gameId: sessionStorage.getItem('userGameId') || null,
+    role: sessionStorage.getItem('userRole') || null,
+    avatar: sessionStorage.getItem('userAvatar') || null
   },
-  isAuthenticated: !!localStorage.getItem('token') || !!localStorage.getItem('supabaseSession'),
-  role: localStorage.getItem('userRole') || null,
-  token: localStorage.getItem('token') || localStorage.getItem('supabaseAccessToken') || null
+  isAuthenticated: !!sessionStorage.getItem('token') || !!sessionStorage.getItem('supabaseSession'),
+  role: sessionStorage.getItem('userRole') || null,
+  token: sessionStorage.getItem('token') || sessionStorage.getItem('supabaseAccessToken') || null
 };
  
 const userSlice = createSlice({
@@ -30,12 +30,12 @@ const userSlice = createSlice({
       state.isAuthenticated = true;
       state.role = action.payload.role;
       state.token = action.payload.token;
-      localStorage.setItem('token', action.payload.token);
-      localStorage.setItem('userRole', action.payload.role);
-      localStorage.setItem('userName', action.payload.name);
-      localStorage.setItem('userEmail', action.payload.email);
-      localStorage.setItem('userPhone', action.payload.phone);
-      if (action.payload.avatar) localStorage.setItem('userAvatar', action.payload.avatar);
+      sessionStorage.setItem('token', action.payload.token);
+      sessionStorage.setItem('userRole', action.payload.role);
+      sessionStorage.setItem('userName', action.payload.name);
+      sessionStorage.setItem('userEmail', action.payload.email);
+      sessionStorage.setItem('userPhone', action.payload.phone);
+      if (action.payload.avatar) sessionStorage.setItem('userAvatar', action.payload.avatar);
     },
     setSupabaseSession: (state, action) => {
       const { session, role } = action.payload;
@@ -44,44 +44,44 @@ const userSlice = createSlice({
       state.userData = {
         name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0],
         email: user.email,
-        phone: localStorage.getItem('userPhone') || user.user_metadata?.phone || null,
-        gameId: localStorage.getItem('userGameId') || null,
+        phone: sessionStorage.getItem('userPhone') || user.user_metadata?.phone || null,
+        gameId: sessionStorage.getItem('userGameId') || null,
         role: role,
-        avatar: localStorage.getItem('userAvatar') || user.user_metadata?.avatar_url || null
+        avatar: sessionStorage.getItem('userAvatar') || user.user_metadata?.avatar_url || null
       };
       state.isAuthenticated = true;
       state.role = role;
       state.token = session.access_token;
-      localStorage.setItem('supabaseSession', JSON.stringify(session));
-      localStorage.setItem('supabaseAccessToken', session.access_token);
-      localStorage.setItem('userRole', role);
-      localStorage.setItem('userName', state.userData.name || '');
-      localStorage.setItem('userEmail', state.userData.email || '');
-      if (state.userData.phone) localStorage.setItem('userPhone', state.userData.phone);
-      if (state.userData.gameId) localStorage.setItem('userGameId', state.userData.gameId);
-      if (state.userData.avatar) localStorage.setItem('userAvatar', state.userData.avatar);
+      sessionStorage.setItem('supabaseSession', JSON.stringify(session));
+      sessionStorage.setItem('supabaseAccessToken', session.access_token);
+      sessionStorage.setItem('userRole', role);
+      sessionStorage.setItem('userName', state.userData.name || '');
+      sessionStorage.setItem('userEmail', state.userData.email || '');
+      if (state.userData.phone) sessionStorage.setItem('userPhone', state.userData.phone);
+      if (state.userData.gameId) sessionStorage.setItem('userGameId', state.userData.gameId);
+      if (state.userData.avatar) sessionStorage.setItem('userAvatar', state.userData.avatar);
     },
     updateProfile: (state, action) => {
       // Update user profile with new information, preserving existing data
       if (action.payload.displayName) {
         state.userData.name = action.payload.displayName;
-        localStorage.setItem('userName', action.payload.displayName);
+        sessionStorage.setItem('userName', action.payload.displayName);
       }
       if (action.payload.phoneNumber) {
         state.userData.phone = action.payload.phoneNumber;
-        localStorage.setItem('userPhone', action.payload.phoneNumber);
+        sessionStorage.setItem('userPhone', action.payload.phoneNumber);
       }
       if (action.payload.gameId) {
         state.userData.gameId = action.payload.gameId;
-        localStorage.setItem('userGameId', action.payload.gameId);
+        sessionStorage.setItem('userGameId', action.payload.gameId);
       }
       // Preserve avatar if not explicitly updated
       if (action.payload.avatar !== undefined) {
         state.userData.avatar = action.payload.avatar;
         if (action.payload.avatar) {
-          localStorage.setItem('userAvatar', action.payload.avatar);
+          sessionStorage.setItem('userAvatar', action.payload.avatar);
         } else {
-          localStorage.removeItem('userAvatar');
+          sessionStorage.removeItem('userAvatar');
         }
       }
     },
@@ -97,16 +97,16 @@ const userSlice = createSlice({
       state.isAuthenticated = false;
       state.role = null;
       state.token = null;
-      localStorage.removeItem('token');
-      localStorage.removeItem('userRole');
-      localStorage.removeItem('userName');
-      localStorage.removeItem('userEmail');
-      localStorage.removeItem('userPhone');
-      localStorage.removeItem('userGameId');
-      localStorage.removeItem('userAvatar');
-      localStorage.removeItem('supabaseSession');
-      localStorage.removeItem('supabaseAccessToken');
-      localStorage.removeItem('needsProfileCompletion');
+  sessionStorage.removeItem('token');
+  sessionStorage.removeItem('userRole');
+  sessionStorage.removeItem('userName');
+  sessionStorage.removeItem('userEmail');
+  sessionStorage.removeItem('userPhone');
+  sessionStorage.removeItem('userGameId');
+  sessionStorage.removeItem('userAvatar');
+  sessionStorage.removeItem('supabaseSession');
+  sessionStorage.removeItem('supabaseAccessToken');
+  sessionStorage.removeItem('needsProfileCompletion');
     },
     // Optional alias for clarity in components
     logout: (state) => {
@@ -117,49 +117,49 @@ const userSlice = createSlice({
       s.role = null;
       s.token = null;
       try {
-        localStorage.removeItem('token');
-        localStorage.removeItem('userRole');
-        localStorage.removeItem('userName');
-        localStorage.removeItem('userEmail');
-        localStorage.removeItem('userPhone');
-        localStorage.removeItem('userGameId');
-        localStorage.removeItem('userAvatar');
-        localStorage.removeItem('supabaseSession');
-        localStorage.removeItem('supabaseAccessToken');
-        localStorage.removeItem('needsProfileCompletion');
+        sessionStorage.removeItem('token');
+        sessionStorage.removeItem('userRole');
+        sessionStorage.removeItem('userName');
+        sessionStorage.removeItem('userEmail');
+        sessionStorage.removeItem('userPhone');
+        sessionStorage.removeItem('userGameId');
+        sessionStorage.removeItem('userAvatar');
+        sessionStorage.removeItem('supabaseSession');
+        sessionStorage.removeItem('supabaseAccessToken');
+        sessionStorage.removeItem('needsProfileCompletion');
       } catch {}
     },
     initializeFromStorage: (state) => {
-      const sessionStr = localStorage.getItem('supabaseSession');
+      const sessionStr = sessionStorage.getItem('supabaseSession');
       if (sessionStr) {
         try {
           const session = JSON.parse(sessionStr);
           state.isAuthenticated = true;
           state.token = session.access_token;
-          state.role = localStorage.getItem('userRole');
+          state.role = sessionStorage.getItem('userRole');
           state.userData = {
-            name: localStorage.getItem('userName'),
-            email: localStorage.getItem('userEmail'),
-            phone: localStorage.getItem('userPhone'),
-            gameId: localStorage.getItem('userGameId'),
-            role: localStorage.getItem('userRole'),
-            avatar: localStorage.getItem('userAvatar')
+            name: sessionStorage.getItem('userName'),
+            email: sessionStorage.getItem('userEmail'),
+            phone: sessionStorage.getItem('userPhone'),
+            gameId: sessionStorage.getItem('userGameId'),
+            role: sessionStorage.getItem('userRole'),
+            avatar: sessionStorage.getItem('userAvatar')
           };
           return;
         } catch {}
       }
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       if (token) {
         state.isAuthenticated = true;
         state.token = token;
-        state.role = localStorage.getItem('userRole');
+        state.role = sessionStorage.getItem('userRole');
         state.userData = {
-          name: localStorage.getItem('userName'),
-          email: localStorage.getItem('userEmail'),
-          phone: localStorage.getItem('userPhone'),
-          gameId: localStorage.getItem('userGameId'),
-          role: localStorage.getItem('userRole'),
-          avatar: localStorage.getItem('userAvatar')
+          name: sessionStorage.getItem('userName'),
+          email: sessionStorage.getItem('userEmail'),
+          phone: sessionStorage.getItem('userPhone'),
+          gameId: sessionStorage.getItem('userGameId'),
+          role: sessionStorage.getItem('userRole'),
+          avatar: sessionStorage.getItem('userAvatar')
         };
       }
     }

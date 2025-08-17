@@ -108,7 +108,7 @@ export function installFetch401Interceptor(store) {
 export function initAuthGuards(store) {
   // On boot: schedule timer if we have a token
   try {
-    const token = localStorage.getItem('token');
+  const token = sessionStorage.getItem('token');
     if (token) {
       if (isJwtExpired(token)) {
         const { clearUser } = require('../redux/userSlice');

@@ -136,8 +136,8 @@ const TermsPage = () => {
 			<SupportModal
 				isOpen={showSupport}
 				onClose={() => setShowSupport(false)}
-				defaultEmail={localStorage.getItem('userEmail') || ''}
-				defaultPhone={localStorage.getItem('userPhone') || ''}
+				defaultEmail={sessionStorage.getItem('userEmail') || ''}
+				defaultPhone={sessionStorage.getItem('userPhone') || ''}
 			/>
 		</div>
 	);
