@@ -657,24 +657,28 @@ const AdminPage = () => {
                       </div>
                       <div className="ap-tournament-actions">
                         <button 
+                          type="button"
                           className="ap-btn ap-btn-secondary"
                           onClick={() => handleEdit(match)}
                         >
                           Edit
                         </button>
                         <button 
+                          type="button"
                           className="ap-btn ap-btn-primary"
                           onClick={() => handleViewDetails(match)}
                         >
                           View Details
                         </button>
                         <button 
+                          type="button"
                           className="ap-btn ap-btn-secondary"
                           onClick={() => openPlayersModal(match)}
                         >
                           View Players
                         </button>
                         <button
+                          type="button"
                           className="ap-btn ap-btn-success"
                           onClick={() => handleMarkCompleted(match)}
                         >

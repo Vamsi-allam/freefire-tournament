@@ -9,11 +9,14 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.example.demo.dto.RegistrationRequest;
 import com.example.demo.dto.RegistrationResponse;
 import com.example.demo.entity.Match;
 import com.example.demo.entity.MatchType;
+import com.example.demo.entity.MatchStatus;
 import com.example.demo.entity.PaymentStatus;
 import com.example.demo.entity.PlayerRole;
 import com.example.demo.entity.Registration;
@@ -31,6 +34,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class RegistrationService {
+    private static final Logger log = LoggerFactory.getLogger(RegistrationService.class);
 
     private final RegistrationRepository registrationRepository;
     private final RegistrationPlayerRepository playerRepository;
@@ -55,7 +59,21 @@ public class RegistrationService {
             throw new RuntimeException("Already registered for this match");
         }
 
-        // Check if match is full
+        // Block registration if match is not OPEN
+        if (match.getStatus() != MatchStatus.OPEN) {
+            throw new RuntimeException("Registration is closed for this match");
+        }
+
+        // Enforce server-side registration cutoff: disallow new registrations within 5 minutes of start
+        java.time.LocalDateTime scheduledAt = match.getScheduledAt();
+        if (scheduledAt != null) {
+            long minutesUntil = java.time.Duration.between(java.time.LocalDateTime.now(), scheduledAt).toMinutes();
+            if (minutesUntil <= 5) {
+                throw new RuntimeException("Registration is closed. Please register at least 5 minutes before the match starts.");
+            }
+        }
+
+    // Check if match is full
         int confirmedRegistrations = registrationRepository.countConfirmedRegistrationsByMatchId(request.getMatchId());
         if (confirmedRegistrations >= match.getSlots()) {
             throw new RuntimeException("Match is full");
@@ -162,17 +180,16 @@ public class RegistrationService {
     @Transactional(readOnly = true)
     public List<RegistrationResponse> getUserRegistrations(Long userId) {
         try {
-            System.out.println("DEBUG: Fetching registrations for user ID: " + userId);
+            log.debug("Fetching registrations for user ID: {}", userId);
             // Use the new method that eagerly fetches the match
             List<Registration> registrations = registrationRepository.findByUserIdWithMatch(userId);
-            System.out.println("DEBUG: Found " + registrations.size() + " registrations");
+            log.debug("Found {} registrations", registrations.size());
 
-            return registrations.stream()
-                    .map(this::convertToResponse)
-                    .collect(Collectors.toList());
+        return registrations.stream()
+            .map(this::convertToResponse)
+            .collect(Collectors.<RegistrationResponse>toList());
         } catch (Exception e) {
-            System.err.println("ERROR in getUserRegistrations: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Error in getUserRegistrations: {}", e.getMessage());
             // Return empty list instead of throwing exception
             return Collections.emptyList();
         }
@@ -184,8 +201,7 @@ public class RegistrationService {
             List<RegistrationPlayer> players = playerRepository.findByRegistrationIdOrderByPlayerPosition(registration.getId());
             return buildRegistrationResponse(registration, players);
         } catch (Exception e) {
-            System.err.println("ERROR in convertToResponse for registration " + registration.getId() + ": " + e.getMessage());
-            e.printStackTrace();
+            log.error("Error in convertToResponse for registration {}: {}", registration.getId(), e.getMessage());
             // Return a minimal response with basic info
             return RegistrationResponse.builder()
                     .id(registration.getId())
@@ -257,10 +273,11 @@ public class RegistrationService {
     public List<RegistrationResponse> getMatchRegistrations(Long matchId) {
         try {
             List<Registration> regs = registrationRepository.findByMatchIdAndStatusWithMatch(matchId, RegistrationStatus.CONFIRMED);
-            return regs.stream().map(this::convertToResponse).collect(Collectors.toList());
+        return regs.stream()
+            .map(this::convertToResponse)
+            .collect(Collectors.<RegistrationResponse>toList());
         } catch (Exception e) {
-            System.err.println("ERROR in getMatchRegistrations: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Error in getMatchRegistrations: {}", e.getMessage());
             return Collections.emptyList();
         }
     }

@@ -1,11 +1,8 @@
 function handleUnauthorized(res) {
 	if (res.status === 401 || res.status === 403) {
-		// Let global interceptor handle Redux; also navigate to home softly
-		try {
-			if (location.pathname !== '/') {
-				window.location.replace('/');
-			}
-		} catch {}
+		// Do NOT hard-navigate; global interceptor clears auth state.
+		// Emit a lightweight event if the app wants to react (optional)
+		try { window.dispatchEvent(new CustomEvent('app:unauthorized', { detail: { status: res.status } })); } catch {}
 	}
 }
 // Basic API helpers for matches (relative paths use Vite proxy in dev)

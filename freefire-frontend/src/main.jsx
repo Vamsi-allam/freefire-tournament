@@ -16,22 +16,13 @@ console.error = (...args) => {
 };
 
 // One-time migration: move any auth/UI state from localStorage -> sessionStorage
+// and purge lingering localStorage entries so DevTools no longer shows them.
 try {
   if (typeof window !== 'undefined') {
     const ls = window.localStorage;
     const ss = window.sessionStorage;
-    const migrateKey = (key) => {
-      try {
-        const val = ls.getItem(key);
-        if (val !== null && ss.getItem(key) === null) {
-          ss.setItem(key, val);
-          ls.removeItem(key);
-        }
-      } catch {}
-    };
 
-    // Known keys our app sets
-    [
+    const knownKeys = [
       'token', 'userRole', 'userName', 'userEmail', 'userPhone', 'userGameId', 'userAvatar',
       'supabaseSession', 'supabaseAccessToken', 'needsProfileCompletion',
       'ui.lastRoute',
@@ -39,17 +30,44 @@ try {
       'ui.wallet.activeSection','ui.wallet.transactionFilter','ui.wallet.showAddMoneyModal','ui.wallet.showWithdrawModal',
       'ui.addMoney.amount','ui.addMoney.method','ui.addMoney.showUpiForm','ui.addMoney.upiPaymentData','ui.addMoney.utr',
       'ui.user.activeTab','ui.user.showWalletModal'
-    ].forEach(migrateKey);
+    ];
 
-    // Also migrate any Supabase sb-* keys (gotrue) if present
+    const safeSet = (k, v) => { try { ss.setItem(k, v); } catch {} };
+    const safeRemoveLS = (k) => { try { ls.removeItem(k); } catch {} };
+
+    // Migrate known app keys first (overwrite in sessionStorage, then remove from localStorage)
+    knownKeys.forEach((key) => {
+      try {
+        const val = ls.getItem(key);
+        if (val !== null) {
+          safeSet(key, val);
+          safeRemoveLS(key);
+        }
+      } catch {}
+    });
+
+    // Collect all localStorage keys first to avoid index shifting while removing
+    let allKeys = [];
     try {
       for (let i = 0; i < ls.length; i++) {
         const k = ls.key(i);
-        if (k && (k.startsWith('sb-') || k.includes('supabase'))) {
-          migrateKey(k);
-        }
+        if (k) allKeys.push(k);
       }
     } catch {}
+
+    // Migrate and purge any Supabase Gotrue keys (sb-*) or anything with 'supabase'
+    allKeys
+      .filter((k) => k.startsWith('sb-') || k.includes('supabase'))
+      .forEach((k) => {
+        try {
+          const val = ls.getItem(k);
+          if (val !== null) safeSet(k, val);
+          safeRemoveLS(k);
+        } catch {}
+      });
+
+    // Final cleanup: ensure known keys are not left behind in localStorage
+    knownKeys.forEach(safeRemoveLS);
   }
 } catch {}
 

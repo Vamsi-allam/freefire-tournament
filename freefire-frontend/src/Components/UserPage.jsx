@@ -725,6 +725,7 @@ const UserPage = () => {
                           </div>
                         )}
                         <button 
+                          type="button"
                           className="view-details-btn"
                           onClick={() => handleViewDetailsClick(match)}
                         >
@@ -800,6 +801,7 @@ const UserPage = () => {
                             </div>
                           )}
                           <button 
+                            type="button"
                             className="view-details-btn"
                             onClick={() => handleViewDetailsClick(match)}
                           >
@@ -1049,6 +1051,7 @@ const UserPage = () => {
                           })()}
                           <div className="card-actions">
                             <button 
+                              type="button"
                               className="view-details-btn"
                               onClick={() => handleViewDetailsClick(match)}
                             >
@@ -1060,22 +1063,32 @@ const UserPage = () => {
                                 ? matchWithStatus.minutesUntilMatch
                                 : Number.POSITIVE_INFINITY;
                               const registrationOpen = minutes > 6; // Allow register only if > 6 minutes before start
+                              const normalizedStatus = String(match.status || matchWithStatus.status || '').toUpperCase();
                               if (isRegistered) {
                                 return (
-                                  <button className="register-btn registered" disabled>
+                                  <button type="button" className="register-btn registered" disabled>
                                     Already Registered
+                                  </button>
+                                );
+                              }
+                              // If backend marks the match as CLOSED or CANCELLED (or anything not OPEN), disable registration
+                              if (normalizedStatus && normalizedStatus !== 'OPEN') {
+                                const label = normalizedStatus === 'CANCELLED' ? 'Cancelled' : 'Registration Closed';
+                                return (
+                                  <button type="button" className="register-btn" disabled title="Registration is not available for this match">
+                                    {label}
                                   </button>
                                 );
                               }
                               if (!registrationOpen) {
                                 return (
-                                  <button className="register-btn" disabled title="Registration closes 8 minutes before start">
+                                  <button type="button" className="register-btn" disabled title="Registration closes 8 minutes before start">
                                     Registration Closed
                                   </button>
                                 );
                               }
                               return (
-                                <button className="register-btn" onClick={() => handleRegisterClick(match)}>
+                                <button type="button" className="register-btn" onClick={() => handleRegisterClick(match)}>
                                   Register Now
                                 </button>
                               );
