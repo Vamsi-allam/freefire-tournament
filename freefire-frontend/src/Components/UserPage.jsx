@@ -138,7 +138,7 @@ const UserPage = () => {
       fetchUserRegistrations();
       fetchWalletBalance();
       fetchUserProfile(); // Also refresh user profile data
-    }, 15000); // 15s
+    }, 1000); // 15s
     return () => clearInterval(interval);
   }, []);
 

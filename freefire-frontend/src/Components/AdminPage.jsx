@@ -93,7 +93,7 @@ const AdminPage = () => {
       if (activeTab === 'history') {
         loadPrizeStatsForCompleted();
       }
-    }, 15000); // 15s
+    }, 1000); // 15s
     return () => clearInterval(id);
   }, [activeTab]);
 
