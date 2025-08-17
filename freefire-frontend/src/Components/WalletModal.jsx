@@ -53,11 +53,14 @@ const WalletModal = ({ isOpen, onClose }) => {
     if (isOpen) {
       const currentProfileStatus = isProfileComplete();
       setProfileCompleted(currentProfileStatus);
-      fetchWalletData();
-  fetchTransactions();
-  fetchUpiPayments();
-  fetchWithdrawals();
-  fetchRegistrations();
+      // Fire all network requests in parallel for speed
+      Promise.allSettled([
+        fetchWalletData(),
+        fetchTransactions(),
+        fetchUpiPayments(),
+        fetchWithdrawals(),
+        fetchRegistrations()
+      ]).catch(() => {});
     }
   }, [isOpen, userData]); // Added userData dependency to re-check when user data changes
 

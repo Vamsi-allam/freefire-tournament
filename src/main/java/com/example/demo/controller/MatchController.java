@@ -21,12 +21,12 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.demo.dto.MatchCreateRequest;
 import com.example.demo.dto.MatchWithRegistrationStatus;
 import com.example.demo.entity.Match;
-import com.example.demo.entity.User;
 import com.example.demo.entity.MatchStatus;
 import com.example.demo.entity.MatchType;
+import com.example.demo.entity.User;
+import com.example.demo.repository.RegistrationRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.MatchService;
-import com.example.demo.service.RegistrationService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -37,8 +37,8 @@ import lombok.RequiredArgsConstructor;
 public class MatchController {
 
     private final MatchService matchService;
-    private final RegistrationService registrationService;
     private final UserRepository userRepository;
+    private final RegistrationRepository registrationRepository;
     private static final Logger log = LoggerFactory.getLogger(MatchController.class);
 
     @PostMapping
@@ -84,12 +84,17 @@ public class MatchController {
         User user = userRepository.findByEmail(userDetails.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        // Fetch matches once
         List<Match> allMatches = matchService.listAll();
+
+        // Fetch user's registered match IDs in one query
+        List<Long> regMatchIds = registrationRepository.findRegisteredMatchIdsForUser(user.getId());
+        java.util.Set<Long> registeredSet = new java.util.HashSet<>(regMatchIds);
+
         List<MatchWithRegistrationStatus> matchesWithStatus = allMatches.stream()
                 .map(match -> {
-                    boolean isRegistered = registrationService.isUserRegisteredForMatch(user.getId(), match.getId());
+                    boolean isRegistered = match.getId() != null && registeredSet.contains(match.getId());
 
-                    // Calculate time until match
                     long minutesUntilMatch = 0L;
                     if (match.getScheduledAt() != null) {
                         try {
@@ -100,11 +105,8 @@ public class MatchController {
                         } catch (Exception ex) {
                             log.warn("Failed to compute minutesUntilMatch for match id={}: {}", match.getId(), ex.getMessage());
                         }
-                    } else {
-                        log.warn("Match id={} has null scheduledAt", match.getId());
                     }
 
-                    // Compute if registrations meet minimum requirement for the match type
                     boolean hasEnoughRegistrations = false;
                     try {
                         int required = requiredTeams(match.getMatchType());
@@ -113,11 +115,6 @@ public class MatchController {
                     } catch (Exception ignore) {
                     }
 
-                    // User can view room credentials only if:
-                    // 1. They are registered
-                    // 2. Match starts within 5 minutes (pre-start window)
-                    // 3. Room credentials exist
-                    // 4. Match is not cancelled AND has enough registrations
                     boolean canViewRoomCredentials = isRegistered
                             && minutesUntilMatch <= 5
                             && minutesUntilMatch >= 0

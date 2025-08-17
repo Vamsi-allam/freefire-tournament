@@ -228,18 +228,7 @@ export async function getMatchRegistrations(matchId) {
 // Get user's own registrations
 export async function getUserRegistrations() {
 	console.log('getUserRegistrations: Headers being sent:', authHeaders());
-	
-	// First try the auth test endpoint to check authentication
-	try {
-		const authTest = await fetch(`${API_BASE}/api/registrations/auth-test`, { 
-			headers: authHeaders() 
-		});
-		const authTestData = await authTest.json();
-		console.log('DEBUG: Auth test result:', authTestData);
-	} catch (error) {
-		console.error('DEBUG: Auth test failed:', error);
-	}
-	
+
 	const res = await fetch(`${API_BASE}/api/registrations/my-registrations`, { headers: authHeaders() });
 		if (!res.ok) { 
 		console.log('getUserRegistrations: Response status:', res.status);

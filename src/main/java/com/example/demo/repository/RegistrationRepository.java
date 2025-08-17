@@ -40,4 +40,11 @@ public interface RegistrationRepository extends JpaRepository<Registration, Long
     List<Integer> findAllocatedSlotsByMatchId(@Param("matchId") Long matchId);
 
     boolean existsByUserIdAndMatchIdAndStatus(Long userId, Long matchId, RegistrationStatus status);
+
+    // Batch helpers to avoid N+1 in controllers/services
+    @Query("SELECT r.match.id FROM Registration r WHERE r.user.id = :userId AND r.status = 'CONFIRMED'")
+    List<Long> findRegisteredMatchIdsForUser(@Param("userId") Long userId);
+
+    @Query("SELECT r.match.id AS matchId, COUNT(r) AS cnt FROM Registration r WHERE r.status = 'CONFIRMED' AND r.match.id IN :matchIds GROUP BY r.match.id")
+    List<Object[]> countConfirmedByMatchIds(@Param("matchIds") List<Long> matchIds);
 }

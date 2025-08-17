@@ -94,14 +94,7 @@ public class MatchService {
         log.debug("listAll invoked");
         List<Match> matches = matchRepository.findAll();
         log.debug("fetched matches count={}", matches.size());
-        // Refresh registration counts for all matches
-        for (Match match : matches) {
-            try {
-                refreshRegistrationCount(match);
-            } catch (Exception ex) {
-                log.error("Failed refreshing registration count for match id={}: {}", match.getId(), ex.getMessage(), ex);
-            }
-        }
+        updateRegisteredCountsInMemory(matches);
         return matches;
     }
 
@@ -109,26 +102,37 @@ public class MatchService {
         log.debug("upcoming invoked");
         List<Match> matches = matchRepository.findByScheduledAtAfterOrderByScheduledAtAsc(LocalDateTime.now());
         log.debug("upcoming matches count={}", matches.size());
-        // Refresh registration counts for upcoming matches
-        for (Match match : matches) {
-            try {
-                refreshRegistrationCount(match);
-            } catch (Exception ex) {
-                log.error("Failed refreshing registration count (upcoming) for match id={}: {}", match.getId(), ex.getMessage(), ex);
-            }
-        }
+        updateRegisteredCountsInMemory(matches);
         return matches;
     }
 
-    private void refreshRegistrationCount(Match match) {
-        if (match.getId() == null) {
-            log.warn("Encountered match without ID while refreshing counts: {}", match);
-            return;
-        }
-        int confirmedRegistrations = registrationRepository.countConfirmedRegistrationsByMatchId(match.getId());
-        if (match.getRegisteredTeams() != confirmedRegistrations) {
-            match.setRegisteredTeams(confirmedRegistrations);
-            matchRepository.save(match);
+    private void updateRegisteredCountsInMemory(List<Match> matches) {
+        try {
+            if (matches == null || matches.isEmpty()) {
+                return;
+            }
+            List<Long> ids = matches.stream()
+                    .map(Match::getId)
+                    .filter(java.util.Objects::nonNull)
+                    .toList();
+            if (ids.isEmpty()) {
+                return;
+            }
+            var rows = registrationRepository.countConfirmedByMatchIds(ids);
+            java.util.Map<Long, Integer> counts = new java.util.HashMap<>();
+            for (Object[] row : rows) {
+                Long matchId = (Long) row[0];
+                Number cnt = (Number) row[1];
+                counts.put(matchId, cnt != null ? cnt.intValue() : 0);
+            }
+            for (Match m : matches) {
+                Integer c = counts.get(m.getId());
+                if (c != null) {
+                    m.setRegisteredTeams(c);
+                }
+            }
+        } catch (Exception ex) {
+            log.warn("Failed to batch update registered counts: {}", ex.getMessage());
         }
     }
 
