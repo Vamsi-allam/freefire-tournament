@@ -52,6 +52,28 @@ const UserPage = () => {
   const [snack, setSnack] = useState({ open: false, message: '', severity: 'info' });
   const openSnack = (message, severity = 'info') => setSnack({ open: true, message, severity });
   const closeSnack = () => setSnack(s => ({ ...s, open: false }));
+  // Listen for global snackbar events (e.g., session expired)
+  useEffect(() => {
+    const onUiSnack = (e) => {
+      const { message, severity } = e.detail || {};
+      if (message) openSnack(message, severity || 'info');
+    };
+    window.addEventListener('ui:snackbar', onUiSnack);
+    return () => window.removeEventListener('ui:snackbar', onUiSnack);
+  }, []);
+
+  // Auto sign-out on unauthorized/expired session
+  useEffect(() => {
+    const onUnauthorized = (e) => {
+      const { isExpired, status } = e.detail || {};
+      if (isExpired || status === 401) {
+        try { dispatch(clearUser()); } catch {}
+        try { navigate('/'); } catch {}
+      }
+    };
+    window.addEventListener('app:unauthorized', onUnauthorized);
+    return () => window.removeEventListener('app:unauthorized', onUnauthorized);
+  }, [dispatch, navigate]);
   // Tick every second for live countdowns on cards
   const [nowTs, setNowTs] = useState(Date.now());
 

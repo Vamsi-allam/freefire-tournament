@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
 import { BrowserRouter, HashRouter, useNavigate } from 'react-router-dom';
@@ -79,6 +79,22 @@ const root = createRoot(container);
 
 // Optional: wrapper to handle an initial route restore very early
 function Boot() {
+  // Install a global listener to react to 401/expired tokens
+  useEffect(() => {
+    const onUnauthorized = (e) => {
+      const detail = e?.detail || {};
+      const msg = detail.message || (detail.isExpired ? 'Session expired. Please sign in again.' : 'Please sign in to continue.');
+      try {
+        // Broadcast a UI notification event; pages with snackbars can show it
+        window.dispatchEvent(new CustomEvent('ui:snackbar', { detail: { message: msg, severity: 'warning' } }));
+      } catch {}
+      // Open sign-in modal if on homepage; else router guard will redirect
+      try { window.dispatchEvent(new CustomEvent('open-signin-modal')); } catch {}
+    };
+    window.addEventListener('app:unauthorized', onUnauthorized);
+    return () => window.removeEventListener('app:unauthorized', onUnauthorized);
+  }, []);
+
   return <App />;
 }
 

@@ -12,6 +12,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import com.example.demo.service.JwtService;
 import com.example.demo.service.Userservice;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -31,7 +32,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             FilterChain filterChain) throws ServletException, IOException {
 
         final String authHeader = request.getHeader("Authorization");
-        final String requestURI = request.getRequestURI();
+    // final String requestURI = request.getRequestURI();
 
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
@@ -59,6 +60,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 } else {
                 }
             }
+        } catch (ExpiredJwtException eje) {
+            // Explicitly signal an expired token so clients can react (e.g., auto sign-out)
+            logger.error("Could not set user authentication due to expired JWT", eje);
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setHeader("X-Auth-Error", "TOKEN_EXPIRED");
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\":\"TOKEN_EXPIRED\",\"message\":\"Session expired. Please sign in again.\"}");
+            return; // stop filter chain
         } catch (Exception e) {
             logger.error("Could not set user authentication: {}", e);
         }

@@ -16,6 +16,17 @@ const Homepage = () => {
   const [showSignInModal, setShowSignInModal] = useState(false);
   const [modalTitle, setModalTitle] = useState('Sign In');
   const [showSupport, setShowSupport] = useState(false);
+  // Show global snack messages on homepage as alerts (simple)
+  useEffect(() => {
+    const onUiSnack = (e) => {
+      const { message } = e.detail || {};
+      if (message) {
+        try { alert(message); } catch {}
+      }
+    };
+    window.addEventListener('ui:snackbar', onUiSnack);
+    return () => window.removeEventListener('ui:snackbar', onUiSnack);
+  }, []);
   // Listen for header login requests
   useEffect(() => {
     const open = () => setShowSignInModal(true);

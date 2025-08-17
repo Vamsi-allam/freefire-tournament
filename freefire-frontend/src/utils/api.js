@@ -1,8 +1,38 @@
 function handleUnauthorized(res) {
 	if (res.status === 401 || res.status === 403) {
-		// Do NOT hard-navigate; global interceptor clears auth state.
-		// Emit a lightweight event if the app wants to react (optional)
-		try { window.dispatchEvent(new CustomEvent('app:unauthorized', { detail: { status: res.status } })); } catch {}
+		const marker = res.headers?.get?.('X-Auth-Error');
+		const isExpired = marker === 'TOKEN_EXPIRED';
+		// Try to parse body for message (non-blocking)
+		const notify = async () => {
+			let msg = isExpired ? 'Session expired. Please sign in again.' : (res.status === 401 ? 'Unauthorized. Please sign in.' : 'Access denied.');
+			try {
+				const ct = res.headers.get('content-type') || '';
+				if (ct.includes('application/json')) {
+					const data = await res.clone().json();
+					if (data && (data.message || data.error)) msg = data.message || data.error;
+				} else {
+					const text = await res.clone().text();
+					if (text) msg = text;
+				}
+			} catch {}
+
+			// Emit a global event apps can listen to (e.g., show snackbar)
+			try {
+				window.dispatchEvent(new CustomEvent('app:unauthorized', { detail: { status: res.status, isExpired, message: msg } }));
+			} catch {}
+
+			// If expired, proactively clear session storage so ProtectedRoute kicks in
+			if (isExpired) {
+				try {
+					sessionStorage.removeItem('token');
+					sessionStorage.removeItem('userRole');
+					sessionStorage.removeItem('supabaseSession');
+					sessionStorage.removeItem('supabaseAccessToken');
+				} catch {}
+			}
+		};
+		// fire and forget
+		try { notify(); } catch {}
 	}
 }
 // Basic API helpers for matches (relative paths use Vite proxy in dev)
@@ -228,6 +258,7 @@ export async function getUserRegistrations() {
 
 	const res = await fetch(`${API_BASE}/api/registrations/my-registrations`, { headers: authHeaders() });
 		if (!res.ok) { 
+		handleUnauthorized(res);
 		console.log('getUserRegistrations: Response status:', res.status);
 		throw new Error('Failed to load your registrations');
 	}
@@ -297,14 +328,14 @@ export async function submitUpiUtr(paymentOrId, utr) {
 // UPI: list my UPI payments (excluding INITIATED)
 export async function listMyUpiPayments() {
 	const res = await fetch(`${API_BASE}/api/upi/my`, { headers: authHeaders() });
-	if (!res.ok) throw new Error('Failed to load UPI payments');
+	if (!res.ok) { handleUnauthorized(res); throw new Error('Failed to load UPI payments'); }
 	return res.json();
 }
 
 // Admin Withdrawal Management
 export async function listPendingWithdrawals() {
 	const res = await fetch(`${API_BASE}/api/withdrawals/admin/pending`, { headers: authHeaders() });
-	if (!res.ok) throw new Error('Failed to load pending withdrawals');
+	if (!res.ok) { handleUnauthorized(res); throw new Error('Failed to load pending withdrawals'); }
 	return res.json();
 }
 
@@ -315,14 +346,14 @@ export async function actOnWithdrawal(requestId, action, notes = '') {
 		body: JSON.stringify({ requestId, action, notes })
 	});
 	const data = await res.json().catch(() => ({}));
-	if (!res.ok) throw new Error(data.error || 'Failed to process withdrawal');
+	if (!res.ok) { handleUnauthorized(res); throw new Error(data.error || 'Failed to process withdrawal'); }
 	return data;
 }
 
 // User: list my withdrawals
 export async function listMyWithdrawals() {
 	const res = await fetch(`${API_BASE}/api/wallet/withdrawals`, { headers: authHeaders() });
-	if (!res.ok) throw new Error('Failed to load your withdrawals');
+	if (!res.ok) { handleUnauthorized(res); throw new Error('Failed to load your withdrawals'); }
 	return res.json();
 }
 
