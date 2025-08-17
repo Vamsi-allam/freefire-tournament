@@ -50,36 +50,27 @@ public class RegistrationController {
 
     @GetMapping("/my-registrations")
     public ResponseEntity<List<RegistrationResponse>> getMyRegistrations(Authentication authentication) {
-        System.out.println("DEBUG: /my-registrations endpoint called");
 
         if (authentication == null) {
-            System.out.println("DEBUG: authentication is null");
             return ResponseEntity.status(403).body(null); // Return 403 instead of 401 for better debugging
         }
 
         if (authentication.getPrincipal() == null) {
-            System.out.println("DEBUG: authentication.getPrincipal() is null");
             return ResponseEntity.status(403).body(null);
         }
 
-        System.out.println("DEBUG: Authentication is valid: " + authentication.getName());
-        System.out.println("DEBUG: Authentication principal type: " + authentication.getPrincipal().getClass().getName());
 
         try {
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-            System.out.println("DEBUG: UserDetails username: " + userDetails.getUsername());
 
             User user = userRepository.findByEmail(userDetails.getUsername())
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
-            System.out.println("DEBUG: Found user with ID: " + user.getId());
 
             List<RegistrationResponse> registrations = registrationService.getUserRegistrations(user.getId());
-            System.out.println("DEBUG: Found " + registrations.size() + " registrations for user");
 
             return ResponseEntity.ok(registrations);
         } catch (Exception e) {
-            System.out.println("DEBUG: Exception in getMyRegistrations: " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.status(500).body(null);
         }

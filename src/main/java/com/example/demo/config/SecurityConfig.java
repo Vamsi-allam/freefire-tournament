@@ -34,7 +34,6 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        System.out.println("SECURITY CONFIG: Configuring security with JWT authentication");
 
         http
                 .csrf(csrf -> csrf.disable())

@@ -65,7 +65,7 @@ public class RegistrationService {
             throw new RuntimeException("Registration is closed for this match");
         }
 
-    // Enforce server-side registration cutoff: disallow new registrations within 7 minutes of start
+        // Enforce server-side registration cutoff: disallow new registrations within 7 minutes of start
         java.time.LocalDateTime scheduledAt = match.getScheduledAt();
         if (scheduledAt != null) {
             long minutesUntil = java.time.Duration.between(java.time.LocalDateTime.now(), scheduledAt).toMinutes();

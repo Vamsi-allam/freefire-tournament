@@ -213,8 +213,6 @@ public class MatchService {
         match.setCredentialsSent(true);
         matchRepository.save(match);
 
-        System.out.println("Sending credentials to registered players for match: " + match.getTitle());
-        System.out.println("Room ID: " + match.getRoomId());
-        System.out.println("Room Password: " + match.getRoomPassword());
+        
     }
 }
