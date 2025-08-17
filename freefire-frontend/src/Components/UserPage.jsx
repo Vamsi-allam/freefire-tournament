@@ -975,7 +975,7 @@ const UserPage = () => {
                               const scheduledMs = isNaN(parsed)
                                 ? nowTs + (isFinite(minutes) ? minutes * 60 * 1000 : 0)
                                 : parsed;
-                              // Registration closes shortly before start (same offset used elsewhere)
+                              // Registration closes 5 minutes before start (aligned with backend)
                               const registrationCloseMs = scheduledMs - 7 * 60 * 1000;
                               const isClosed = nowTs >= registrationCloseMs;
                               return (
@@ -1036,7 +1036,7 @@ const UserPage = () => {
                             const scheduledMs = isNaN(parsed)
                               ? nowTs + (isFinite(minutes) ? minutes * 60 * 1000 : 0)
                               : parsed;
-                            const registrationCloseMs = scheduledMs - 7 * 60 * 1000; // closes 8 minutes before
+                            const registrationCloseMs = scheduledMs - 7 * 60 * 1000; // closes 7 minutes before
                             const timeLeftMs = isRegistered
                               ? Math.max(0, scheduledMs - nowTs)
                               : Math.max(0, registrationCloseMs - nowTs);
@@ -1062,7 +1062,13 @@ const UserPage = () => {
                               const minutes = typeof matchWithStatus.minutesUntilMatch === 'number'
                                 ? matchWithStatus.minutesUntilMatch
                                 : Number.POSITIVE_INFINITY;
-                              const registrationOpen = minutes > 6; // Allow register only if > 6 minutes before start
+                              // Compute live scheduled time and 5-minute cutoff using nowTs
+                              const parsed = Date.parse(match.scheduledAt || match.date || '');
+                              const scheduledMs = isNaN(parsed)
+                                ? nowTs + (isFinite(minutes) ? minutes * 60 * 1000 : 0)
+                                : parsed;
+                              const registrationCloseMs = scheduledMs - 7 * 60 * 1000;
+                              const isClosed = nowTs >= registrationCloseMs;
                               const normalizedStatus = String(match.status || matchWithStatus.status || '').toUpperCase();
                               if (isRegistered) {
                                 return (
@@ -1071,19 +1077,12 @@ const UserPage = () => {
                                   </button>
                                 );
                               }
-                              // If backend marks the match as CLOSED or CANCELLED (or anything not OPEN), disable registration
-                              if (normalizedStatus && normalizedStatus !== 'OPEN') {
+                              // If backend marks the match as CLOSED/CANCELLED, or local cutoff reached, disable
+                              if ((normalizedStatus && normalizedStatus !== 'OPEN') || isClosed) {
                                 const label = normalizedStatus === 'CANCELLED' ? 'Cancelled' : 'Registration Closed';
                                 return (
                                   <button type="button" className="register-btn" disabled title="Registration is not available for this match">
                                     {label}
-                                  </button>
-                                );
-                              }
-                              if (!registrationOpen) {
-                                return (
-                                  <button type="button" className="register-btn" disabled title="Registration closes 8 minutes before start">
-                                    Registration Closed
                                   </button>
                                 );
                               }

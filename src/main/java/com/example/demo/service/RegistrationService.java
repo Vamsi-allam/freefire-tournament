@@ -34,6 +34,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class RegistrationService {
+
     private static final Logger log = LoggerFactory.getLogger(RegistrationService.class);
 
     private final RegistrationRepository registrationRepository;
@@ -64,16 +65,16 @@ public class RegistrationService {
             throw new RuntimeException("Registration is closed for this match");
         }
 
-        // Enforce server-side registration cutoff: disallow new registrations within 5 minutes of start
+    // Enforce server-side registration cutoff: disallow new registrations within 7 minutes of start
         java.time.LocalDateTime scheduledAt = match.getScheduledAt();
         if (scheduledAt != null) {
             long minutesUntil = java.time.Duration.between(java.time.LocalDateTime.now(), scheduledAt).toMinutes();
-            if (minutesUntil <= 5) {
-                throw new RuntimeException("Registration is closed. Please register at least 5 minutes before the match starts.");
+            if (minutesUntil <= 7) {
+                throw new RuntimeException("Registration is closed. Please register at least 7 minutes before the match starts.");
             }
         }
 
-    // Check if match is full
+        // Check if match is full
         int confirmedRegistrations = registrationRepository.countConfirmedRegistrationsByMatchId(request.getMatchId());
         if (confirmedRegistrations >= match.getSlots()) {
             throw new RuntimeException("Match is full");
@@ -185,9 +186,9 @@ public class RegistrationService {
             List<Registration> registrations = registrationRepository.findByUserIdWithMatch(userId);
             log.debug("Found {} registrations", registrations.size());
 
-        return registrations.stream()
-            .map(this::convertToResponse)
-            .collect(Collectors.<RegistrationResponse>toList());
+            return registrations.stream()
+                    .map(this::convertToResponse)
+                    .collect(Collectors.<RegistrationResponse>toList());
         } catch (Exception e) {
             log.error("Error in getUserRegistrations: {}", e.getMessage());
             // Return empty list instead of throwing exception
@@ -273,9 +274,9 @@ public class RegistrationService {
     public List<RegistrationResponse> getMatchRegistrations(Long matchId) {
         try {
             List<Registration> regs = registrationRepository.findByMatchIdAndStatusWithMatch(matchId, RegistrationStatus.CONFIRMED);
-        return regs.stream()
-            .map(this::convertToResponse)
-            .collect(Collectors.<RegistrationResponse>toList());
+            return regs.stream()
+                    .map(this::convertToResponse)
+                    .collect(Collectors.<RegistrationResponse>toList());
         } catch (Exception e) {
             log.error("Error in getMatchRegistrations: {}", e.getMessage());
             return Collections.emptyList();

@@ -43,7 +43,8 @@ public class MatchSchedulingService {
             if (minutesUntil > 5) {
                 continue; // Only act within 5 minutes window
 
-                        }if (minutesUntil < -10) {
+            }
+            if (minutesUntil < -10) {
                 continue; // Skip long past matches
             }
             // Count confirmed registrations
@@ -82,9 +83,12 @@ public class MatchSchedulingService {
     // Keep in sync with MatchController.requiredTeams
     private int requiredTeams(MatchType type) {
         return switch (type) {
-            case SOLO -> 25;   // minimum solo players
-            case DUO -> 13;    // minimum duo teams
-            case SQUAD -> 7;   // minimum squad teams
+            case SOLO ->
+                25;   // minimum solo players
+            case DUO ->
+                13;    // minimum duo teams
+            case SQUAD ->
+                7;   // minimum squad teams
         };
     }
 }
