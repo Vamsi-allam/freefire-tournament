@@ -89,10 +89,7 @@ const AdminPage = () => {
     scheduleDateTime: '',
     mapName: 'Bermuda',
     gameMode: 'SOLO',
-    rules: defaultRules,
-    // Clash Squad extras
-    rounds: 7,
-    teamSlots: 2
+    rules: defaultRules
   });
 
   // Updated map list to match available map images/names requested
@@ -100,7 +97,6 @@ const AdminPage = () => {
 
   const syncType = (title) => {
     const lower = title.toLowerCase();
-    if (lower.includes('clash') || lower.includes('4v4')) return 'CLASH_SQUAD';
     if (lower.includes('duo')) return 'DUO';
     if (lower.includes('squad')) return 'SQUAD';
     return 'SOLO';
@@ -212,15 +208,15 @@ const AdminPage = () => {
 
   const computed = (() => {
     const type = form.matchType;
-    if (type === 'CLASH_SQUAD') {
-      const slots = form.teamSlots || 2; // teams
-      const collected = form.entryFee * slots;
-      const payout = Math.round(collected * 0.85);
-      return { slots, pool: payout, first: payout, second: 0, third: 0 };
-    }
     const slots = type === 'SOLO' ? 48 : type === 'DUO' ? 24 : 12;
     const pool = form.entryFee * slots;
-    return { slots, pool, first: Math.round(pool * 0.40), second: Math.round(pool * 0.30), third: Math.round(pool * 0.20) };
+    return {
+      slots,
+      pool,
+      first: Math.round(pool * 0.40),
+      second: Math.round(pool * 0.30),
+      third: Math.round(pool * 0.20)
+    };
   })();
 
   const onChange = (e) => {
@@ -232,10 +228,6 @@ const AdminPage = () => {
       setForm(f => ({ ...f, matchType: value, gameMode: value }));
     } else if (name === 'entryFee') {
       setForm(f => ({ ...f, entryFee: Number(value) || 0 }));
-    } else if (name === 'rounds') {
-      setForm(f => ({ ...f, rounds: Number(value) || 7 }));
-    } else if (name === 'teamSlots') {
-      setForm(f => ({ ...f, teamSlots: Number(value) || 2 }));
     } else {
       setForm(f => ({ ...f, [name]: value }));
     }
@@ -612,7 +604,6 @@ const AdminPage = () => {
                     <option>Free Fire Solo Battle</option>
                     <option>Free Fire Duo Battle</option>
                     <option>Free Fire Squad Battle</option>
-                    <option>Free Fire Clash Squad (4v4)</option>
                   </select>
                 </label>
                 <label className="ap-field">Game
@@ -637,28 +628,13 @@ const AdminPage = () => {
                 <label className="ap-field">Game Mode
                   <input name="gameMode" value={form.gameMode} readOnly />
                 </label>
-                {form.matchType === 'CLASH_SQUAD' && (
-                  <>
-                    <label className="ap-field">Rounds
-                      <select name="rounds" value={form.rounds} onChange={onChange}>
-                        <option value={7}>7</option>
-                        <option value={13}>13</option>
-                      </select>
-                    </label>
-                    <label className="ap-field">Team Slots
-                      <input name="teamSlots" type="number" min="2" max="2" value={form.teamSlots} onChange={onChange} />
-                    </label>
-                  </>
-                )}
               </div>
               <div className="ap-prizes">
                 <div>Slots: <strong>{computed.slots}</strong></div>
                 <div>Total Pool: <strong>₹{computed.pool}</strong></div>
                 <div>1st: ₹{computed.first}</div>
-                {form.matchType !== 'CLASH_SQUAD' && (<>
-                  <div>2nd: ₹{computed.second}</div>
-                  <div>3rd: ₹{computed.third}</div>
-                </>)}
+                <div>2nd: ₹{computed.second}</div>
+                <div>3rd: ₹{computed.third}</div>
               </div>
               <label className="ap-field full">Rules
                 <textarea name="rules" rows={5} value={form.rules} onChange={onChange} />
@@ -1208,7 +1184,6 @@ const AdminPage = () => {
                       <option value="SOLO">Solo</option>
                       <option value="DUO">Duo</option>
                       <option value="SQUAD">Squad</option>
-                      <option value="CLASH_SQUAD">Clash Squad (4v4)</option>
                     </select>
                   </div>
                   <div className="ap-form-group">
@@ -1221,32 +1196,6 @@ const AdminPage = () => {
                     />
                   </div>
                 </div>
-                {editingMatch.matchType === 'CLASH_SQUAD' && (
-                  <div className="ap-form-row">
-                    <div className="ap-form-group">
-                      <label>Rounds</label>
-                      <select
-                        value={editingMatch.rounds || 7}
-                        onChange={(e) => setEditingMatch({...editingMatch, rounds: parseInt(e.target.value)})}
-                        className="ap-form-select"
-                      >
-                        <option value={7}>7</option>
-                        <option value={13}>13</option>
-                      </select>
-                    </div>
-                    <div className="ap-form-group">
-                      <label>Team Slots</label>
-                      <input
-                        type="number"
-                        value={editingMatch.teamSlots || 2}
-                        min="2"
-                        max="2"
-                        onChange={(e) => setEditingMatch({...editingMatch, teamSlots: parseInt(e.target.value)})}
-                        className="ap-form-input"
-                      />
-                    </div>
-                  </div>
-                )}
 
                 <div className="ap-form-row">
                   <div className="ap-form-group">

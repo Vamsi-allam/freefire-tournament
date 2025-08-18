@@ -179,7 +179,6 @@ const ResultsManagementModal = ({ isOpen, onClose, matchData, onPrizesCredited }
     // Helpers
     const matchType = (matchData?.matchType || '').toUpperCase();
     const isSolo = matchType === 'SOLO';
-    const isClash = matchType === 'CLASH_SQUAD';
     const perKillRate = Math.round((matchData?.entryFee || 0) * 0.8);
     const computeToDistribute = () => {
         try {
@@ -190,10 +189,6 @@ const ResultsManagementModal = ({ isOpen, onClose, matchData, onPrizesCredited }
                 return perKillRate * totalKills;
             }
             const pool = entry * participants.length;
-            if (isClash) {
-                // Winner takes 85% of total collected
-                return Math.round(pool * 0.85);
-            }
             if (matchType === 'DUO') {
                 const percents = [0.40, 0.30, 0.20, 0.05, 0.05];
                 return participants.reduce((sum, p) => {
@@ -216,7 +211,6 @@ const ResultsManagementModal = ({ isOpen, onClose, matchData, onPrizesCredited }
 
     const winnersSetCount = (() => {
         if (isSolo) return participants.filter(p => (Number(p.kills) || 0) > 0).length;
-        if (isClash) return participants.filter(p => (Number(p.position) || 0) === 1).length;
         if (matchType === 'DUO') return participants.filter(p => (Number(p.position) || 0) > 0 && p.position <= 5).length;
         return participants.filter(p => (Number(p.position) || 0) > 0 && p.position <= 3).length;
     })();
@@ -294,9 +288,8 @@ const ResultsManagementModal = ({ isOpen, onClose, matchData, onPrizesCredited }
                                             const posNum = Number(p.position) || 0;
                                             const killsNum = Number(p.kills) || 0;
                                             const eligible = isSolo ? (killsNum > 0)
-                                                       : (isClash ? (posNum === 1)
-                                                                : (matchType === 'DUO' ? (posNum >= 1 && posNum <= 5)
-                                                                : (posNum >= 1 && posNum <= 3)));
+                                                       : (matchType === 'DUO' ? (posNum >= 1 && posNum <= 5)
+                                                                : (posNum >= 1 && posNum <= 3));
                                                                                     return (
                                                                                             <div key={p.registrationId} className="table-row">
                                                                                                                                             <div className="col">{p.teamName}</div>
@@ -344,17 +337,15 @@ const ResultsManagementModal = ({ isOpen, onClose, matchData, onPrizesCredited }
                                                                 const posNum = Number(p.position) || 0;
                                                                 const killsNum = Number(p.kills) || 0;
                                                                 return isSolo ? (killsNum > 0)
-                                                                    : (isClash ? (posNum === 1)
                                                                     : (matchType === 'DUO' ? (posNum >= 1 && posNum <= 5)
-                                                                    : (posNum >= 1 && posNum <= 3)));
+                                                                    : (posNum >= 1 && posNum <= 3));
                                                             });
                                                             const canCredit = participants.some(p => {
                                                                 const posNum = Number(p.position) || 0;
                                                                 const killsNum = Number(p.kills) || 0;
                                                                 const eligible = isSolo ? (killsNum > 0)
-                                                                    : (isClash ? (posNum === 1)
                                                                     : (matchType === 'DUO' ? (posNum >= 1 && posNum <= 5)
-                                                                    : (posNum >= 1 && posNum <= 3)));
+                                                                    : (posNum >= 1 && posNum <= 3));
                                                                 return eligible && (Number(p.prizeAmount)||0) > 0 && !p.prizeCredited;
                                                             });
                                                             return (

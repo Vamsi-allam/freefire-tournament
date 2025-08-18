@@ -38,12 +38,6 @@ public class Match {
     private String mapName; // Bermuda etc.
     private String gameMode; // SOLO / DUO / SQUAD
 
-    // Clash Squad specific fields
-    // Number of rounds for Clash Squad (usually 7 or 13). Null for BR modes.
-    private Integer rounds;
-    // For Clash Squad, number of team slots (always 2 for 4v4). Null for BR modes.
-    private Integer teamSlots;
-
     @Column(length = 2000)
     private String rules; // shared tournament rules
 

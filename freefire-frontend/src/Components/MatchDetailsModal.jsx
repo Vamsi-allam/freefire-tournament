@@ -61,8 +61,6 @@ const MatchDetailsModal = ({ isOpen, onClose, match, userRegistrations = [], par
         return { players: '2 Players', teamSize: '24 Teams (48 Players)', description: 'Team up with 1 partner' };
       case 'SQUAD':
         return { players: '4 Players', teamSize: '12 Teams (48 Players)', description: 'Team up with 3 friends' };
-      case 'CLASH_SQUAD':
-        return { players: '4v4', teamSize: `${match?.teamSlots || 2} Teams (4v4)`, description: `Clash Squad • ${match?.rounds || 7} Rounds` };
       default:
         return { players: 'Unknown', teamSize: 'Unknown', description: 'Match details' };
     }
@@ -222,7 +220,7 @@ const MatchDetailsModal = ({ isOpen, onClose, match, userRegistrations = [], par
               </div>
               <div className="detail-item">
                 <span className="detail-label">Game Mode:</span>
-                <span className="detail-value">{match.gameMode || match.matchType}{match.matchType?.toUpperCase()==='CLASH_SQUAD' && match.rounds ? ` • ${match.rounds} Rounds` : ''}</span>
+                <span className="detail-value">{match.gameMode || match.matchType}</span>
               </div>
             </div>
           </div>
@@ -288,17 +286,6 @@ const MatchDetailsModal = ({ isOpen, onClose, match, userRegistrations = [], par
                       <div className="position-prize">
                         <span className="position">5th</span>
                         <span className="amount">5% of pool</span>
-                      </div>
-                    </div>
-                  );
-                }
-                if (t === 'CLASH_SQUAD') {
-                  const payout = Math.round(((Number(match.entryFee) || 0) * (Number(match.teamSlots) || 2)) * 0.85);
-                  return (
-                    <div className="prize-positions">
-                      <div className="position-prize first">
-                        <span className="position">🥇 Winner</span>
-                        <span className="amount">₹{payout} (85% of total entry)</span>
                       </div>
                     </div>
                   );

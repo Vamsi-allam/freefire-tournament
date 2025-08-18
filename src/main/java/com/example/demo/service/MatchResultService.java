@@ -127,7 +127,7 @@ public class MatchResultService {
         int confirmed = registrationRepository.countConfirmedRegistrationsByMatchId(matchId);
         BigDecimal totalPrizePool = BigDecimal.valueOf((long) match.getEntryFee() * confirmed);
 
-    // Build distributions based on match type
+        // Build distributions based on match type
         List<PrizeDistributionResponse.PrizeDistributionDetail> distributions;
         switch (match.getMatchType()) {
             case SOLO:
@@ -149,23 +149,6 @@ public class MatchResultService {
                         .build())
                         .collect(Collectors.toList());
                 break;
-        case CLASH_SQUAD:
-        // Clash Squad: 2 teams enter, 85% of collected goes to the winning team (position 1)
-        BigDecimal csDistributable = totalPrizePool.multiply(new BigDecimal("0.85")).setScale(0, java.math.RoundingMode.HALF_UP);
-        distributions = results.stream()
-            .filter(r -> r.getPosition() != null && r.getPosition() == 1)
-            .sorted((a, b) -> Integer.compare(a.getPosition(), b.getPosition()))
-            .map(r -> PrizeDistributionResponse.PrizeDistributionDetail.builder()
-            .userId(r.getUser().getId())
-            .playerName(r.getUser().getName())
-            .teamName("Team " + r.getRegistration().getSlotNumber())
-            .position(r.getPosition())
-            .kills(r.getKills())
-            .prizeAmount(csDistributable)
-            .alreadyCredited(r.getPrizeCredited())
-            .build())
-            .collect(Collectors.toList());
-        break;
             case DUO:
                 // DUO: Top 5 by position with 40%, 30%, 20%, 5%, 5%
                 BigDecimal[] duoPercents = new BigDecimal[]{
@@ -263,7 +246,7 @@ public class MatchResultService {
     }
 
     private BigDecimal calculatePrizeAmount(Match match, Integer position, Integer kills) {
-    // SOLO: per-kill payout of 80% of entry fee
+        // SOLO: per-kill payout of 80% of entry fee
         if (match.getMatchType() == com.example.demo.entity.MatchType.SOLO) {
             int k = kills == null ? 0 : kills;
             if (k <= 0) {
@@ -273,16 +256,6 @@ public class MatchResultService {
                     .multiply(new BigDecimal("0.80"))
                     .setScale(0, java.math.RoundingMode.HALF_UP);
             return perKill.multiply(BigDecimal.valueOf(k));
-        }
-
-        // CLASH_SQUAD: winner takes 85% of collected
-        if (match.getMatchType() == com.example.demo.entity.MatchType.CLASH_SQUAD) {
-            if (position == null || position != 1) {
-                return BigDecimal.ZERO;
-            }
-            int confirmed = registrationRepository.countConfirmedRegistrationsByMatchId(match.getId());
-            BigDecimal collected = BigDecimal.valueOf((long) match.getEntryFee() * confirmed);
-            return collected.multiply(new BigDecimal("0.85")).setScale(0, java.math.RoundingMode.HALF_UP);
         }
 
         // DUO: Top 5 (40%, 30%, 20%, 5%, 5%)

@@ -33,68 +33,40 @@ public class MatchService {
 
     public Match create(MatchCreateRequest req) {
         MatchType type = deriveType(req.getTitle(), req.getMatchType());
-    int slots = switch (type) {
+        int slots = switch (type) {
             case SOLO ->
                 48;
             case DUO ->
                 24;
             case SQUAD ->
                 12;
-            case CLASH_SQUAD ->
-        (req.getTeamSlots() != null && req.getTeamSlots().intValue() > 0) ? req.getTeamSlots().intValue() : 2; // two teams only
         };
-    int entryFee = req.getEntryFee() != null ? req.getEntryFee().intValue() : 0;
-
-        // Prize computation:
-        // - BR modes (SOLO/DUO/SQUAD): pool = entryFee * slots, default 40/30/20 breakdown
-        // - CLASH_SQUAD: two teams pay entry each; 85% of total collected goes to winners
-        int totalPool;
-        int prize1;
-        int prize2;
-        int prize3;
-        if (type == MatchType.CLASH_SQUAD) {
-            int collected = entryFee * slots; // typically 2 * entryFee
-            totalPool = collected;
-            int distributable = (int) Math.round(collected * 0.85);
-            // For Clash Squad, we store prizePool as distributable and set first prize = distributable
-            prize1 = distributable;
-            prize2 = 0;
-            prize3 = 0;
-        } else {
-            totalPool = entryFee * slots;
-            prize1 = (int) Math.round(totalPool * 0.40);
-            prize2 = (int) Math.round(totalPool * 0.30);
-            prize3 = (int) Math.round(totalPool * 0.20);
-        }
+        int entryFee = req.getEntryFee() != null ? req.getEntryFee().intValue() : 0;
+        int totalPool = entryFee * slots;
+        int prize1 = (int) Math.round(totalPool * 0.40);
+        int prize2 = (int) Math.round(totalPool * 0.30);
+        int prize3 = (int) Math.round(totalPool * 0.20);
         LocalDateTime when;
         try {
             when = LocalDateTime.parse(req.getScheduleDateTime());
         } catch (DateTimeParseException e) {
-            // Accept common HTML datetime-local format without seconds (yyyy-MM-dd'T'HH:mm)
-            try {
-                when = LocalDateTime.parse(req.getScheduleDateTime() + ":00");
-            } catch (Exception ex) {
-                throw new IllegalArgumentException("Invalid scheduleDateTime. Expected ISO like 2025-08-18T12:30 or 2025-08-18T12:30:00");
-            }
+            throw new IllegalArgumentException("Invalid scheduleDateTime ISO format");
         }
 
-    Match match = Match.builder()
+        Match match = Match.builder()
                 .title(req.getTitle())
                 .game(req.getGame())
                 .matchType(type)
                 .status(MatchStatus.OPEN)
                 .slots(slots)
                 .entryFee(entryFee)
-        // For Clash Squad, show prizePool as the distributable amount (85% of collected)
-        .prizePool(type == MatchType.CLASH_SQUAD ? prize1 : totalPool)
+                .prizePool(totalPool)
                 .prizeFirst(prize1)
                 .prizeSecond(prize2)
                 .prizeThird(prize3)
                 .scheduledAt(when)
                 .mapName(req.getMapName())
-        .gameMode(req.getGameMode())
-                .rounds(type == MatchType.CLASH_SQUAD ? (req.getRounds() != null ? req.getRounds().intValue() : 7) : null)
-        .teamSlots(type == MatchType.CLASH_SQUAD ? slots : null)
+                .gameMode(req.getGameMode())
                 .rules(req.getRules())
                 .build();
         return matchRepository.save(match);
@@ -109,9 +81,6 @@ public class MatchService {
 
         }
         String lower = title.toLowerCase();
-        if (lower.contains("clash") || lower.contains("4v4")) {
-            return MatchType.CLASH_SQUAD;
-        }
         if (lower.contains("duo")) {
             return MatchType.DUO;
         }
@@ -188,8 +157,6 @@ public class MatchService {
         existingMatch.setRules(updatedMatch.getRules());
         existingMatch.setRoomId(updatedMatch.getRoomId());
         existingMatch.setRoomPassword(updatedMatch.getRoomPassword());
-    existingMatch.setRounds(updatedMatch.getRounds());
-    existingMatch.setTeamSlots(updatedMatch.getTeamSlots());
 
         Match saved = matchRepository.save(existingMatch);
 
