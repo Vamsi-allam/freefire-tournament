@@ -285,6 +285,8 @@ const UserPage = () => {
         return "bg-green-500";
       case "squad":
         return "bg-purple-500";
+      case "clash_squad":
+        return "bg-pink-600";
       default:
         return "bg-gray-500";
     }
@@ -686,8 +688,8 @@ const UserPage = () => {
                       <div className="card-header">
                         <div className="card-badges">
                           <span className={`type-badge ${getTypeColor(match.matchType || match.type)}`}>
-                            {(match.matchType || match.type || 'UNKNOWN').toUpperCase()
-                          }</span>
+                            {(match.matchType || match.type || 'UNKNOWN').toUpperCase().replace('CLASH_SQUAD','CLASH SQUAD')}
+                          </span>
                           {isMatchLive(matchWithStatus) ? (
                             <span className="status-badge live">LIVE</span>
                           ) : (
@@ -772,7 +774,7 @@ const UserPage = () => {
                         <div className="card-header">
                           <div className="card-badges">
                             <span className={`type-badge ${getTypeColor(match.matchType || match.type)}`}>
-                              {(match.matchType || match.type || 'UNKNOWN').toUpperCase()}
+                              {(match.matchType || match.type || 'UNKNOWN').toUpperCase().replace('CLASH_SQUAD','CLASH SQUAD')}
                             </span>
                             <span className="status-badge live">LIVE</span>
                             {matchWithStatus.canViewRoomCredentials && (
@@ -842,8 +844,8 @@ const UserPage = () => {
                       <div className="card-header">
                         <div className="card-badges">
                           <span className={`type-badge ${getTypeColor(registration.match.matchType || registration.match.type)}`}>
-                            {(registration.match.matchType || registration.match.type || 'UNKNOWN').toUpperCase()
-                          }</span>
+                            {(registration.match.matchType || registration.match.type || 'UNKNOWN').toUpperCase().replace('CLASH_SQUAD','CLASH SQUAD')}
+                          </span>
                           <span className={`status-badge ${registration.match.status === 'CANCELLED' ? 'cancelled' : 'completed'}`}>
                             {registration.match.status === 'CANCELLED' ? 'CANCELLED' : 'COMPLETED'}
                           </span>

@@ -25,7 +25,8 @@ const RegistrationModal = ({ isOpen, onClose, match, onRegistrationSuccess }) =>
     switch (matchType?.toUpperCase()) {
       case 'SOLO': return 1;
       case 'DUO': return 2;
-      case 'SQUAD': return 4;
+  case 'SQUAD': return 4;
+  case 'CLASH_SQUAD': return 4; // 4 per team
       default: return 1;
     }
   };
@@ -104,7 +105,8 @@ const RegistrationModal = ({ isOpen, onClose, match, onRegistrationSuccess }) =>
   const playerLabels = {
     SOLO: ['Player'],
     DUO: ['Player 1 (You)', 'Player 2 (Partner)'],
-    SQUAD: ['Player 1 (You)', 'Player 2', 'Player 3', 'Player 4']
+    SQUAD: ['Player 1 (You)', 'Player 2', 'Player 3', 'Player 4'],
+    CLASH_SQUAD: ['Player 1 (You)', 'Player 2', 'Player 3', 'Player 4']
   };
 
   return (
@@ -121,6 +123,12 @@ const RegistrationModal = ({ isOpen, onClose, match, onRegistrationSuccess }) =>
             <div className="match-details">
               <p><strong>Entry Fee:</strong> ₹{match.entryFee}</p>
               <p><strong>Prize Pool:</strong> ₹{match.prizePool}</p>
+              {matchType === 'CLASH_SQUAD' && (
+                <p><strong>Prize:</strong> Winner takes 85% of pool</p>
+              )}
+              {match.rounds && (
+                <p><strong>Rounds:</strong> {match.rounds}</p>
+              )}
               <p><strong>Date:</strong> {new Date(match.scheduledAt || match.date).toLocaleString()}</p>
             </div>
           </div>

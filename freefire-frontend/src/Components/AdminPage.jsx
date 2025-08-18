@@ -84,12 +84,13 @@ const AdminPage = () => {
   const [form, setForm] = useState({
     title: 'Free Fire Solo Battle',
     game: 'Free Fire',
-    matchType: 'SOLO',
+  matchType: 'SOLO',
     entryFee: 0,
     scheduleDateTime: '',
     mapName: 'Bermuda',
-    gameMode: 'SOLO',
-    rules: defaultRules
+  gameMode: 'SOLO',
+  rounds: 7, // for CLASH_SQUAD
+  rules: defaultRules
   });
 
   // Updated map list to match available map images/names requested
@@ -97,6 +98,7 @@ const AdminPage = () => {
 
   const syncType = (title) => {
     const lower = title.toLowerCase();
+  if (lower.includes('clash') || lower.includes('4v4') || lower.includes('4 v 4')) return 'CLASH_SQUAD';
     if (lower.includes('duo')) return 'DUO';
     if (lower.includes('squad')) return 'SQUAD';
     return 'SOLO';
@@ -208,14 +210,14 @@ const AdminPage = () => {
 
   const computed = (() => {
     const type = form.matchType;
-    const slots = type === 'SOLO' ? 48 : type === 'DUO' ? 24 : 12;
+    const slots = type === 'SOLO' ? 48 : type === 'DUO' ? 24 : type === 'CLASH_SQUAD' ? 2 : 12;
     const pool = form.entryFee * slots;
     return {
       slots,
       pool,
-      first: Math.round(pool * 0.40),
-      second: Math.round(pool * 0.30),
-      third: Math.round(pool * 0.20)
+      first: type === 'CLASH_SQUAD' ? Math.round(pool * 0.85) : Math.round(pool * 0.40),
+      second: type === 'CLASH_SQUAD' ? 0 : Math.round(pool * 0.30),
+      third: type === 'CLASH_SQUAD' ? 0 : Math.round(pool * 0.20)
     };
   })();
 
@@ -223,11 +225,13 @@ const AdminPage = () => {
     const { name, value } = e.target;
     if (name === 'title') {
       const mt = syncType(value);
-      setForm(f => ({ ...f, title: value, matchType: mt, gameMode: mt }));
+      setForm(f => ({ ...f, title: value, matchType: mt, gameMode: mt, rounds: mt==='CLASH_SQUAD' ? (f.rounds||7) : undefined }));
     } else if (name === 'matchType') {
-      setForm(f => ({ ...f, matchType: value, gameMode: value }));
+      setForm(f => ({ ...f, matchType: value, gameMode: value, rounds: value==='CLASH_SQUAD' ? (f.rounds||7) : undefined }));
     } else if (name === 'entryFee') {
       setForm(f => ({ ...f, entryFee: Number(value) || 0 }));
+    } else if (name === 'rounds') {
+      setForm(f => ({ ...f, rounds: Number(value) || 7 }));
     } else {
       setForm(f => ({ ...f, [name]: value }));
     }
@@ -237,7 +241,11 @@ const AdminPage = () => {
     e.preventDefault();
     setCreating(true); setError(null);
     try {
-      await createMatch(form);
+      const payload = { ...form };
+      if (payload.matchType !== 'CLASH_SQUAD') {
+        delete payload.rounds;
+      }
+      await createMatch(payload);
       await refreshLists();
       setActiveTab('scheduler');
     } catch (err) {
@@ -280,10 +288,12 @@ const AdminPage = () => {
 
   const handleSaveEdit = async () => {
     try {
-      
-      
+      const payload = { ...editingMatch };
+      if ((payload.matchType || '').toUpperCase() !== 'CLASH_SQUAD') {
+        payload.rounds = null;
+      }
       // Use the API utility function which handles auth properly
-      await updateMatch(editingMatch.id, editingMatch);
+      await updateMatch(editingMatch.id, payload);
       await refreshLists();
       setShowEditModal(false);
       setEditingMatch(null);
@@ -604,6 +614,7 @@ const AdminPage = () => {
                     <option>Free Fire Solo Battle</option>
                     <option>Free Fire Duo Battle</option>
                     <option>Free Fire Squad Battle</option>
+                    <option>Free Fire Clash Squad 4v4</option>
                   </select>
                 </label>
                 <label className="ap-field">Game
@@ -628,13 +639,21 @@ const AdminPage = () => {
                 <label className="ap-field">Game Mode
                   <input name="gameMode" value={form.gameMode} readOnly />
                 </label>
+                {form.matchType === 'CLASH_SQUAD' && (
+                  <label className="ap-field">Rounds
+                    <select name="rounds" value={form.rounds || 7} onChange={onChange}>
+                      <option value={7}>7</option>
+                      <option value={13}>13</option>
+                    </select>
+                  </label>
+                )}
               </div>
               <div className="ap-prizes">
                 <div>Slots: <strong>{computed.slots}</strong></div>
                 <div>Total Pool: <strong>₹{computed.pool}</strong></div>
                 <div>1st: ₹{computed.first}</div>
-                <div>2nd: ₹{computed.second}</div>
-                <div>3rd: ₹{computed.third}</div>
+                {form.matchType !== 'CLASH_SQUAD' && <div>2nd: ₹{computed.second}</div>}
+                {form.matchType !== 'CLASH_SQUAD' && <div>3rd: ₹{computed.third}</div>}
               </div>
               <label className="ap-field full">Rules
                 <textarea name="rules" rows={5} value={form.rules} onChange={onChange} />
@@ -1184,8 +1203,22 @@ const AdminPage = () => {
                       <option value="SOLO">Solo</option>
                       <option value="DUO">Duo</option>
                       <option value="SQUAD">Squad</option>
+                      <option value="CLASH_SQUAD">Clash Squad 4v4</option>
                     </select>
                   </div>
+                  {editingMatch.matchType === 'CLASH_SQUAD' && (
+                    <div className="ap-form-group">
+                      <label>Rounds</label>
+                      <select
+                        value={editingMatch.rounds || 7}
+                        onChange={(e) => setEditingMatch({ ...editingMatch, rounds: parseInt(e.target.value) })}
+                        className="ap-form-select"
+                      >
+                        <option value={7}>7</option>
+                        <option value={13}>13</option>
+                      </select>
+                    </div>
+                  )}
                   <div className="ap-form-group">
                     <label>Slots</label>
                     <input
@@ -1341,6 +1374,18 @@ const AdminPage = () => {
                     <div className="ap-detail-value">{viewingMatch.registeredTeams || 0}/{viewingMatch.slots}</div>
                   </div>
                 </div>
+                {String(viewingMatch.matchType).toUpperCase() === 'CLASH_SQUAD' && (
+                  <div className="ap-detail-row">
+                    <div className="ap-detail-group">
+                      <label>Rounds</label>
+                      <div className="ap-detail-value">{viewingMatch.rounds || 7}</div>
+                    </div>
+                    <div className="ap-detail-group">
+                      <label>Prize</label>
+                      <div className="ap-detail-value">Winner takes 85% of pool</div>
+                    </div>
+                  </div>
+                )}
 
                 <div className="ap-detail-row">
                   <div className="ap-detail-group">

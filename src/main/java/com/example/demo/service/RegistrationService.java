@@ -7,16 +7,16 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.demo.dto.RegistrationRequest;
 import com.example.demo.dto.RegistrationResponse;
 import com.example.demo.entity.Match;
-import com.example.demo.entity.MatchType;
 import com.example.demo.entity.MatchStatus;
+import com.example.demo.entity.MatchType;
 import com.example.demo.entity.PaymentStatus;
 import com.example.demo.entity.PlayerRole;
 import com.example.demo.entity.Registration;
@@ -154,6 +154,8 @@ public class RegistrationService {
                 2;
             case SQUAD ->
                 4;
+            case CLASH_SQUAD ->
+                4; // 4v4 team per slot
         };
 
         if (players.size() != expectedPlayerCount) {

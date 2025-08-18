@@ -149,6 +149,23 @@ public class MatchResultService {
                         .build())
                         .collect(Collectors.toList());
                 break;
+            case CLASH_SQUAD:
+                // Winner takes 85% of pool
+                BigDecimal clashPercent = new BigDecimal("0.85");
+                distributions = results.stream()
+                        .filter(r -> r.getPosition() != null && r.getPosition() == 1)
+                        .sorted((a, b) -> Integer.compare(a.getPosition(), b.getPosition()))
+                        .map(r -> PrizeDistributionResponse.PrizeDistributionDetail.builder()
+                        .userId(r.getUser().getId())
+                        .playerName(r.getUser().getName())
+                        .teamName("Team " + r.getRegistration().getSlotNumber())
+                        .position(r.getPosition())
+                        .kills(r.getKills())
+                        .prizeAmount(totalPrizePool.multiply(clashPercent).setScale(0, java.math.RoundingMode.HALF_UP))
+                        .alreadyCredited(r.getPrizeCredited())
+                        .build())
+                        .collect(Collectors.toList());
+                break;
             case DUO:
                 // DUO: Top 5 by position with 40%, 30%, 20%, 5%, 5%
                 BigDecimal[] duoPercents = new BigDecimal[]{
@@ -260,6 +277,7 @@ public class MatchResultService {
 
         // DUO: Top 5 (40%, 30%, 20%, 5%, 5%)
         // SQUAD: Top 3 (40%, 30%, 20%)
+        // CLASH_SQUAD: Winner takes 85%
         if (position == null || position <= 0) {
             return BigDecimal.ZERO;
         }
@@ -273,6 +291,12 @@ public class MatchResultService {
             if (position > 5) {
                 return BigDecimal.ZERO;
             }
+        } else if (match.getMatchType() == com.example.demo.entity.MatchType.CLASH_SQUAD) {
+            // Only position 1 gets 85%
+            if (position != 1) {
+                return BigDecimal.ZERO;
+            }
+            return pool.multiply(new BigDecimal("0.85")).setScale(0, java.math.RoundingMode.HALF_UP);
         } else { // SQUAD or default
             percents = new BigDecimal[]{new BigDecimal("0.40"), new BigDecimal("0.30"), new BigDecimal("0.20")};
             if (position > 3) {

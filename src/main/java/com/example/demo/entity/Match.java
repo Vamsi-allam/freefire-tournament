@@ -1,8 +1,19 @@
 package com.example.demo.entity;
 
-import jakarta.persistence.*;
-import lombok.*;
 import java.time.LocalDateTime;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "matches")
@@ -20,7 +31,7 @@ public class Match {
     private String game;  // Free Fire
 
     @Enumerated(EnumType.STRING)
-    private MatchType matchType; // SOLO, DUO, SQUAD
+    private MatchType matchType; // SOLO, DUO, SQUAD, CLASH_SQUAD
 
     @Enumerated(EnumType.STRING)
     private MatchStatus status; // OPEN, UPCOMING, LIVE, COMPLETED
@@ -36,7 +47,7 @@ public class Match {
     private LocalDateTime scheduledAt;
 
     private String mapName; // Bermuda etc.
-    private String gameMode; // SOLO / DUO / SQUAD
+    private String gameMode; // SOLO / DUO / SQUAD / CLASH_SQUAD
 
     @Column(length = 2000)
     private String rules; // shared tournament rules
@@ -48,4 +59,8 @@ public class Match {
 
     // Registration tracking
     private int registeredTeams; // current registrations
+
+    // Clash Squad specific fields
+    // Number of rounds for Clash Squad (7 or 13). Null for other modes.
+    private Integer rounds;
 }

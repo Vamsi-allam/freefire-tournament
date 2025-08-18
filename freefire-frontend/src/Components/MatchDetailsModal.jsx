@@ -61,6 +61,8 @@ const MatchDetailsModal = ({ isOpen, onClose, match, userRegistrations = [], par
         return { players: '2 Players', teamSize: '24 Teams (48 Players)', description: 'Team up with 1 partner' };
       case 'SQUAD':
         return { players: '4 Players', teamSize: '12 Teams (48 Players)', description: 'Team up with 3 friends' };
+      case 'CLASH_SQUAD':
+        return { players: '4 Players', teamSize: '2 Teams (4v4)', description: 'Clash Squad 4v4 mode' };
       default:
         return { players: 'Unknown', teamSize: 'Unknown', description: 'Match details' };
     }
@@ -222,6 +224,12 @@ const MatchDetailsModal = ({ isOpen, onClose, match, userRegistrations = [], par
                 <span className="detail-label">Game Mode:</span>
                 <span className="detail-value">{match.gameMode || match.matchType}</span>
               </div>
+              {match.matchType?.toUpperCase() === 'CLASH_SQUAD' && match.rounds && (
+                <div className="detail-item">
+                  <span className="detail-label">Rounds:</span>
+                  <span className="detail-value">{match.rounds}</span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -286,6 +294,16 @@ const MatchDetailsModal = ({ isOpen, onClose, match, userRegistrations = [], par
                       <div className="position-prize">
                         <span className="position">5th</span>
                         <span className="amount">5% of pool</span>
+                      </div>
+                    </div>
+                  );
+                }
+                if (t === 'CLASH_SQUAD') {
+                  return (
+                    <div className="prize-positions">
+                      <div className="position-prize first">
+                        <span className="position">🥇 Winner</span>
+                        <span className="amount">85% of pool</span>
                       </div>
                     </div>
                   );

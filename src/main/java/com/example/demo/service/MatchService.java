@@ -40,12 +40,29 @@ public class MatchService {
                 24;
             case SQUAD ->
                 12;
+            case CLASH_SQUAD ->
+                2; // Only two squads face off
         };
         int entryFee = req.getEntryFee() != null ? req.getEntryFee().intValue() : 0;
         int totalPool = entryFee * slots;
-        int prize1 = (int) Math.round(totalPool * 0.40);
-        int prize2 = (int) Math.round(totalPool * 0.30);
-        int prize3 = (int) Math.round(totalPool * 0.20);
+        int prize1;
+        int prize2;
+        int prize3;
+        if (type == MatchType.CLASH_SQUAD) {
+            // Winner takes 85% for Clash Squad
+            prize1 = (int) Math.round(totalPool * 0.85);
+            prize2 = 0;
+            prize3 = 0;
+        } else if (type == MatchType.DUO) {
+            // Keep pool breakdown generic in entity; detailed distribution handled in results service
+            prize1 = (int) Math.round(totalPool * 0.40);
+            prize2 = (int) Math.round(totalPool * 0.30);
+            prize3 = (int) Math.round(totalPool * 0.20);
+        } else {
+            prize1 = (int) Math.round(totalPool * 0.40);
+            prize2 = (int) Math.round(totalPool * 0.30);
+            prize3 = (int) Math.round(totalPool * 0.20);
+        }
         LocalDateTime when;
         try {
             when = LocalDateTime.parse(req.getScheduleDateTime());
@@ -66,21 +83,30 @@ public class MatchService {
                 .prizeThird(prize3)
                 .scheduledAt(when)
                 .mapName(req.getMapName())
-                .gameMode(req.getGameMode())
+                .gameMode(req.getGameMode() != null ? req.getGameMode() : type.name())
                 .rules(req.getRules())
+                .rounds(type == MatchType.CLASH_SQUAD ? (req.getRounds() != null ? req.getRounds() : Integer.valueOf(7)) : null)
                 .build();
         return matchRepository.save(match);
     }
 
     private MatchType deriveType(String title, String provided) {
         if (provided != null && !provided.isBlank()) {
-            return MatchType.valueOf(provided.toUpperCase());
+            try {
+                return MatchType.valueOf(provided.toUpperCase());
+            } catch (IllegalArgumentException ex) {
+                // Fallback to title-based inference to avoid 500s if DB constraint or enum is out of sync
+                log.warn("Unknown matchType '{}', falling back to title inference", provided);
+            }
         }
         if (title == null) {
             return MatchType.SOLO; // default
 
         }
         String lower = title.toLowerCase();
+        if (lower.contains("clash") || lower.contains("4v4") || lower.contains("4 v 4")) {
+            return MatchType.CLASH_SQUAD;
+        }
         if (lower.contains("duo")) {
             return MatchType.DUO;
         }
@@ -157,6 +183,7 @@ public class MatchService {
         existingMatch.setRules(updatedMatch.getRules());
         existingMatch.setRoomId(updatedMatch.getRoomId());
         existingMatch.setRoomPassword(updatedMatch.getRoomPassword());
+        existingMatch.setRounds(updatedMatch.getRounds());
 
         Match saved = matchRepository.save(existingMatch);
 
@@ -213,6 +240,5 @@ public class MatchService {
         match.setCredentialsSent(true);
         matchRepository.save(match);
 
-        
     }
 }

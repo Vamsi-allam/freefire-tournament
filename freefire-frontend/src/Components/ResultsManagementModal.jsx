@@ -197,6 +197,10 @@ const ResultsManagementModal = ({ isOpen, onClose, matchData, onPrizesCredited }
                     return sum;
                 }, 0);
             }
+            if (matchType === 'CLASH_SQUAD') {
+                const hasWinner = participants.some(p => (Number(p.position) || 0) === 1);
+                return hasWinner ? Math.round(pool * 0.85) : 0;
+            }
             // SQUAD & others
             const percents = [0.40, 0.30, 0.20];
             return participants.reduce((sum, p) => {
@@ -212,6 +216,7 @@ const ResultsManagementModal = ({ isOpen, onClose, matchData, onPrizesCredited }
     const winnersSetCount = (() => {
         if (isSolo) return participants.filter(p => (Number(p.kills) || 0) > 0).length;
         if (matchType === 'DUO') return participants.filter(p => (Number(p.position) || 0) > 0 && p.position <= 5).length;
+        if (matchType === 'CLASH_SQUAD') return participants.some(p => (Number(p.position) || 0) === 1) ? 1 : 0;
         return participants.filter(p => (Number(p.position) || 0) > 0 && p.position <= 3).length;
     })();
 
@@ -287,9 +292,17 @@ const ResultsManagementModal = ({ isOpen, onClose, matchData, onPrizesCredited }
                                                                                     const edit = rowEdits[p.registrationId] || { position: p.position ?? null, kills: p.kills ?? 0 };
                                             const posNum = Number(p.position) || 0;
                                             const killsNum = Number(p.kills) || 0;
-                                            const eligible = isSolo ? (killsNum > 0)
-                                                       : (matchType === 'DUO' ? (posNum >= 1 && posNum <= 5)
-                                                                : (posNum >= 1 && posNum <= 3));
+                                            let eligible;
+                                            if (isSolo) {
+                                                eligible = killsNum > 0;
+                                            } else if (matchType === 'DUO') {
+                                                eligible = posNum >= 1 && posNum <= 5;
+                                            } else if (matchType === 'CLASH_SQUAD') {
+                                                eligible = posNum === 1;
+                                            } else {
+                                                // SQUAD & others
+                                                eligible = posNum >= 1 && posNum <= 3;
+                                            }
                                                                                     return (
                                                                                             <div key={p.registrationId} className="table-row">
                                                                                                                                             <div className="col">{p.teamName}</div>
@@ -336,16 +349,24 @@ const ResultsManagementModal = ({ isOpen, onClose, matchData, onPrizesCredited }
                                                             const anyEligible = participants.some(p => {
                                                                 const posNum = Number(p.position) || 0;
                                                                 const killsNum = Number(p.kills) || 0;
-                                                                return isSolo ? (killsNum > 0)
-                                                                    : (matchType === 'DUO' ? (posNum >= 1 && posNum <= 5)
-                                                                    : (posNum >= 1 && posNum <= 3));
+                                                                if (isSolo) return killsNum > 0;
+                                                                if (matchType === 'DUO') return posNum >= 1 && posNum <= 5;
+                                                                if (matchType === 'CLASH_SQUAD') return posNum === 1;
+                                                                return posNum >= 1 && posNum <= 3; // SQUAD & others
                                                             });
                                                             const canCredit = participants.some(p => {
                                                                 const posNum = Number(p.position) || 0;
                                                                 const killsNum = Number(p.kills) || 0;
-                                                                const eligible = isSolo ? (killsNum > 0)
-                                                                    : (matchType === 'DUO' ? (posNum >= 1 && posNum <= 5)
-                                                                    : (posNum >= 1 && posNum <= 3));
+                                                                let eligible;
+                                                                if (isSolo) {
+                                                                    eligible = killsNum > 0;
+                                                                } else if (matchType === 'DUO') {
+                                                                    eligible = posNum >= 1 && posNum <= 5;
+                                                                } else if (matchType === 'CLASH_SQUAD') {
+                                                                    eligible = posNum === 1;
+                                                                } else {
+                                                                    eligible = posNum >= 1 && posNum <= 3; // SQUAD & others
+                                                                }
                                                                 return eligible && (Number(p.prizeAmount)||0) > 0 && !p.prizeCredited;
                                                             });
                                                             return (

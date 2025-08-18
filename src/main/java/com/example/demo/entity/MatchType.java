@@ -3,5 +3,6 @@ package com.example.demo.entity;
 public enum MatchType {
     SOLO,
     DUO,
-    SQUAD
+    SQUAD,
+    CLASH_SQUAD
 }
