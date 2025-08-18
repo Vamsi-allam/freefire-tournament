@@ -1001,6 +1001,12 @@ const UserPage = () => {
                                   </span>
                                 );
                               }
+                              const isFull = Number(match.registeredTeams || 0) >= Number(match.slots || 0);
+                              if (isFull) {
+                                return (
+                                  <span className="status-badge full">FULL</span>
+                                );
+                              }
                               // Determine if registration window has closed
                               const minutes = typeof matchWithStatus.minutesUntilMatch === 'number'
                                 ? matchWithStatus.minutesUntilMatch
@@ -1108,6 +1114,14 @@ const UserPage = () => {
                                 return (
                                   <button type="button" className="register-btn registered" disabled>
                                     Already Registered
+                                  </button>
+                                );
+                              }
+                              const isFull = Number(match.registeredTeams || 0) >= Number(match.slots || 0);
+                              if (isFull) {
+                                return (
+                                  <button type="button" className="register-btn" disabled title="All slots are filled">
+                                    Tournament Full
                                   </button>
                                 );
                               }

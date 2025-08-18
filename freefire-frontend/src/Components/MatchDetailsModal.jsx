@@ -129,6 +129,12 @@ const MatchDetailsModal = ({ isOpen, onClose, match, userRegistrations = [], par
     if (statusUpper === 'CANCELLED') return { label: 'CANCELLED', className: 'cancelled' };
     if (statusUpper === 'COMPLETED') return { label: 'COMPLETED', className: 'completed' };
 
+    // If slots are full, show FULL regardless of OPEN/UPCOMING
+    const isFull = Number(match.registeredTeams || 0) >= Number(match.slots || 0);
+    if (isFull && (statusUpper === 'OPEN' || statusUpper === 'UPCOMING' || !statusUpper)) {
+      return { label: 'FULL', className: 'full' };
+    }
+
     // Parse schedule and compute minutes until match
     const nowTs = Date.now();
     const parsed = Date.parse(match.scheduledAt || match.date || '');

@@ -701,6 +701,13 @@
   color: #e5e7eb;
 }
 
+/* Full badge */
+.status-badge.full {
+  background-color: #111827; /* very dark gray */
+  color: #fca5a5; /* soft red text */
+  border: 1px solid rgba(239,68,68,0.35);
+}
+
 /* Slot number badge */
 .status-badge.slot {
   background: linear-gradient(135deg, #0ea5e9, #2563eb);
